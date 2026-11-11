@@ -1,0 +1,15 @@
+{
+  "transport": "Chrome headless -> cliente ES module -> HTTP FastAPI -> Ollama real",
+  "checks": [
+    "Pregunta visible y controles bloqueados durante generación",
+    "Consulta real en navegador, CORS, contrato, identificación de proveedor y sin duplicado",
+    "Historial y preferencia de lectura persisten tras recarga",
+    "Fallo de red conserva pregunta, ofrece reintento y no guarda mock",
+    "Recarga offline de PWA con módulo LLM en caché"
+  ],
+  "voice": "Audio/micrófono físicos y voces del sistema pendientes de revisión manual",
+  "routing": "CDP redirige solo el puerto 8000 del cliente a un FastAPI propio en puerto libre; no hay mocks ni se usa el servidor del usuario",
+  "generated_observation": "Síntoma declarado: pequeños insectos y agujeros en algunas hojas.\n\nIncertidumbre sobre causas: no hay evidencia científica para determinar la causa exacta de estos síntomas.\n\nComprobación: Observa cuántas plantas tienen estos síntomas y desde cuándo comenzaron.",
+  "status": "PASS",
+  "executed_at": "2026-11-11T05:42:57.397Z"
+}
