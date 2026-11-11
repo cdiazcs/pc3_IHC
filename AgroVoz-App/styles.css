@@ -40,3 +40,36 @@
 .rooms-panel #rooms-invitation-code{font-family:monospace;letter-spacing:.1em}
 .rooms-panel .rooms-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .rooms-panel .btn:focus-visible,.rooms-panel .field:focus-visible{outline:3px solid #164a37;outline-offset:3px}
+
+/* Aprendizaje opcional: controles con área táctil y sin animaciones añadidas. */
+.personalization{margin-block:18px;overflow-wrap:anywhere}
+.personalization .btn{min-width:44px;min-height:44px}
+.personalization .btn[aria-pressed="true"]{border:2px solid var(--deep);background:var(--light);color:var(--deep)}
+.personalization dt{font-weight:750;margin-top:18px}
+.personalization dd{margin:8px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.personalization :focus-visible{outline:3px solid var(--deep);outline-offset:3px}
+
+/* Norman: bienvenida breve; actividad solo durante escucha y consulta pendientes. */
+.welcome-sprout{transform-origin:50% 95%;animation:sprout-in .65s ease-out 1}
+@keyframes sprout-in{from{transform:scale(.35) rotate(-12deg);opacity:.2}to{transform:scale(1) rotate(0);opacity:1}}
+.mic-listening{outline:3px solid var(--deep);animation:mic-pulse 1s ease-in-out infinite}
+@keyframes mic-pulse{50%{box-shadow:0 0 0 6px #20745128}}
+.voice-tools{margin-bottom:20px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--white)}
+.voice-tools p{margin-bottom:8px}
+.voice-tools .btn,.voice-command-button{min-width:44px;min-height:44px}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--deep);outline-offset:3px}
+.btn[aria-pressed="true"]{border-color:var(--deep)}
+#rooms-status[data-kind="success"]{border-left:4px solid var(--green);padding:12px;background:var(--light)}
+@media(max-width:768px){.top-actions{width:100%;gap:8px}.voice-tools .btnrow{align-items:stretch}.voice-tools .btn{white-space:normal}.user-switch{max-width:100%}}
+@media(prefers-reduced-motion:reduce){.welcome-sprout,.mic-listening,.loading-bar span{animation:none!important;transform:none!important;transition:none!important}}
+/* Permite reflujo del encabezado al ampliar texto o aumentar el zoom. */
+.topbar{height:auto;min-height:74px;flex-wrap:wrap;padding-block:12px}
+.top-actions{min-width:0}
+.voice-tools,.weekly-summary{overflow-wrap:anywhere}
+.btn.voice-command-button{min-width:44px;min-height:44px}
+
+/* Fase III: área táctil consistente y reflujo sin recortar contenido. */
+.btn.small{min-width:44px;min-height:44px}
+input,select,textarea{max-width:100%;min-width:0}
+.modal{overflow-wrap:anywhere}
+@media(max-width:768px){.topbar-title{max-width:100%;overflow-wrap:anywhere}.top-actions>*{max-width:100%}.btnrow .btn{white-space:normal}.listitem{flex-wrap:wrap}}

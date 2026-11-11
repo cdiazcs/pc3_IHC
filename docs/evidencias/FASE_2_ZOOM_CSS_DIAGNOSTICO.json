@@ -1,0 +1,126 @@
+{
+  "status": "FAIL",
+  "checks": [
+    "Bienvenida local y ayuda visible con ocho comandos",
+    "Sin desborde horizontal en seis pantallas a 360/768/1280 px"
+  ],
+  "scope": "Chrome real, recursos locales. Sin consultas Ollama/PostgreSQL ni micrófono físico.",
+  "layouts": [
+    {
+      "route": "inicio",
+      "viewport": 360,
+      "scroll": 345,
+      "width": 345
+    },
+    {
+      "route": "consultar",
+      "viewport": 360,
+      "scroll": 345,
+      "width": 345
+    },
+    {
+      "route": "parcelas",
+      "viewport": 360,
+      "scroll": 345,
+      "width": 345
+    },
+    {
+      "route": "alertas",
+      "viewport": 360,
+      "scroll": 345,
+      "width": 345
+    },
+    {
+      "route": "historial",
+      "viewport": 360,
+      "scroll": 345,
+      "width": 345
+    },
+    {
+      "route": "perfil",
+      "viewport": 360,
+      "scroll": 345,
+      "width": 345
+    },
+    {
+      "route": "inicio",
+      "viewport": 768,
+      "scroll": 753,
+      "width": 753
+    },
+    {
+      "route": "consultar",
+      "viewport": 768,
+      "scroll": 753,
+      "width": 753
+    },
+    {
+      "route": "parcelas",
+      "viewport": 768,
+      "scroll": 753,
+      "width": 753
+    },
+    {
+      "route": "alertas",
+      "viewport": 768,
+      "scroll": 753,
+      "width": 753
+    },
+    {
+      "route": "historial",
+      "viewport": 768,
+      "scroll": 753,
+      "width": 753
+    },
+    {
+      "route": "perfil",
+      "viewport": 768,
+      "scroll": 753,
+      "width": 753
+    },
+    {
+      "route": "inicio",
+      "viewport": 1280,
+      "scroll": 1265,
+      "width": 1265
+    },
+    {
+      "route": "consultar",
+      "viewport": 1280,
+      "scroll": 1265,
+      "width": 1265
+    },
+    {
+      "route": "parcelas",
+      "viewport": 1280,
+      "scroll": 1265,
+      "width": 1265
+    },
+    {
+      "route": "alertas",
+      "viewport": 1280,
+      "scroll": 1265,
+      "width": 1265
+    },
+    {
+      "route": "historial",
+      "viewport": 1280,
+      "scroll": 1265,
+      "width": 1265
+    },
+    {
+      "route": "perfil",
+      "viewport": 1280,
+      "scroll": 1265,
+      "width": 1265
+    }
+  ],
+  "css_zoom_200": {
+    "zoom": "2",
+    "scroll": 1277,
+    "width": 1265
+  },
+  "zoom_overflow": [],
+  "error": "The expression evaluated to a falsy value:\n\n  assert.ok(zoom.scroll<=zoom.width+1)\n",
+  "executed_at": "2026-11-11T16:48:13.242Z"
+}

@@ -21,8 +21,8 @@ const invalid = () => new RoomsAPIError(0,'invalid_response','El servicio devolv
 export class RoomsClient {
   constructor({storage=globalThis.localStorage,fetchImpl=(...args)=>globalThis.fetch(...args),
     setTimer=(callback,delay)=>globalThis.setTimeout(callback,delay),clearTimer=id=>globalThis.clearTimeout(id),now=()=>Date.now(),makeId=()=>globalThis.crypto.randomUUID(),
-    timeoutMs=10000,pollMs=4000,onChange=()=>{}}={}){
-    Object.assign(this,{storage,fetchImpl,setTimer,clearTimer,now,makeId,timeoutMs,pollMs,onChange});
+    timeoutMs=10000,pollMs=4000,onChange=()=>{},onPublished=()=>{}}={}){
+    Object.assign(this,{storage,fetchImpl,setTimer,clearTimer,now,makeId,timeoutMs,pollMs,onChange,onPublished});
     this.profile=null;this.active=false;this.epoch=0;this.readVersion=0;this.controllers=new Set();
     this.timer=null;this.readTask=null;this.busy=false;this.visible=true;this.online=true;
     this.rooms=[];this.alerts=new Map();this.cursor='0';this.failures=0;this.lastSync=null;this.invitation=null;
@@ -217,6 +217,7 @@ export class RoomsClient {
       if(!validAlert(data?.alert,room.id)||typeof data.replayed!=='boolean')throw invalid();
       // Una publicación propia NO adelanta el cursor de lectura.
       this.alerts.set(data.alert.id,data.alert);draft.text='';draft.pending=null;this.persist();
+      if(!data.replayed){try{this.onPublished();}catch{/* La retroalimentación opcional no cambia el éxito HTTP. */}}
       this.message('success',data.replayed?'Publicación confirmada sin duplicarla.':'Publicado: el servidor confirmó y guardó tu alerta.');this.refresh();
     });
   }

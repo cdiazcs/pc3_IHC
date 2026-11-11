@@ -1,7 +1,9 @@
 /* Pruebas de lógica UI ejecutadas sin navegador. No reemplazan pruebas E2E ni tests con usuarios. */
 const fs=require('fs'), vm=require('vm'), path=require('path'), assert=require('assert');
 const appSource=fs.readFileSync(path.join(__dirname,'../AgroVoz-App/app.js'),'utf8').replace("import {consultLLM} from './modules/llm-client.js';",'')
- .replace("import {createRoomsCommunity} from './modules/rooms-client.js';",'');
+ .replace("import {createRoomsCommunity} from './modules/rooms-client.js';",'')
+ .replace("import {createPersonalization,personalizationView} from './modules/personalization.js';",'')
+ .replace("import {parseVoiceCommand} from './modules/voice-commands.js';",'');
 const store=new Map();const handlers={};const app={innerHTML:''};
 const fakeDocument={
  getElementById(id){return id==='app'?app:null},
@@ -20,7 +22,7 @@ const ctx={
  consultLLM:()=>{throw new Error('La prueba PC2 no debe llamar al proveedor');},
  createRoomsCommunity:()=>({isReal:()=>false,selector:()=>'',sync(){},chooseMode(){throw new Error('Las pruebas PC2 no deben activar la red comunitaria');}}),
 };
-vm.createContext(ctx);vm.runInContext(appSource,ctx,{filename:'app.js'});
+vm.createContext(ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'../AgroVoz-App/modules/voice-commands.js'),'utf8').replace(/^export /gm,''),ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'../AgroVoz-App/modules/personalization.js'),'utf8').replace(/^export /gm,''),ctx);vm.runInContext(appSource,ctx,{filename:'app.js'});
 function q(script){return vm.runInContext(script,ctx)}
 function act(action,attrs={}){handlers['document-click']({target:{closest:()=>({dataset:{action,...attrs}})}})}
 function form(id,elements){handlers['document-submit']({preventDefault(){},target:{id,elements}})}

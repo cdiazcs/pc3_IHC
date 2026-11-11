@@ -1,11 +1,5 @@
 # Actualización del módulo LLM + voz para integrar con calidad
 
-Fecha de trabajo: 11/11/2026, America/Lima. Alcance exclusivo de `feature/llm-voz`.
-Esta tabla prepara las actualizaciones de `docs/MATRIZ_TRAZABILIDAD.md` y del CSV
-para Enoc (`docs/pc3-calidad`). No se sobrescribieron esos archivos compartidos ni
-se contactó a otros integrantes. Se requiere su revisión antes de incorporarla;
-no supone que la coordinación externa ya ocurrió.
-
 | ID existente | Estado propuesto del módulo | Evidencia | Aceptación pendiente |
 |---|---|---|---|
 | RF-04 | Implementado; micrófono físico pendiente | `app.js:startVoice`, prueba de callbacks/permiso | dictado real es-PE en navegador compatible |
@@ -27,6 +21,4 @@ no supone que la coordinación externa ya ocurrió.
 | RNF-13 | Adaptador real implementado y probado | servicio HTTP asíncrono compatible con proveedor configurado | otros proveedores no probados |
 | RNF-14 | Parcial | límites visibles, rechazos de tratamientos/truncamiento conocidos | filtro no certifica exactitud ni ausencia universal de invenciones |
 
-No se actualizan filas de salas, colaboración, administración, visión artificial
-ni publicación PWA. La única modificación del service worker incorpora el nuevo
-módulo al caché, conservando el arranque offline que ya existía.
+

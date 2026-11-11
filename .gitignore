@@ -9,4 +9,6 @@ __pycache__/
 node_modules/
 
 # Configuración personal del editor
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json

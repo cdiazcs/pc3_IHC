@@ -146,3 +146,13 @@ test('Sesión no válida se borra solo del perfil actual sin perder borrador',as
  assert.equal(h.client.session,null);assert.equal(h.client.draft().text,'Observación agrícola con manchas.');
  assert.equal(h.timers.size,0);assert.equal(h.client.status.kind,'error');
 });
+
+test('Fase 2: aviso sensorial solo después de HTTP válido; nunca en error ni replay',async t=>{
+ const wait=deferred();let phase='waiting',notices=0;
+ const h=await harness(t,call=>call.method==='POST'&&call.url.endsWith('/alerts')?(phase==='waiting'?wait.promise:phase==='error'?response({detail:{code:'unavailable'}},503):response({alert:alert(),replayed:true},200)):undefined);
+ h.client.onPublished=()=>{notices++;};h.client.updateDraft('papa','Observación para comprobar el acuse verdadero.');
+ const pending=h.client.publish();await flush();assert.equal(notices,0);assert.equal(h.client.status.kind,'working');
+ wait.resolve(response({alert:alert(),replayed:false},201));await pending;assert.equal(notices,1);assert.equal(h.client.status.kind,'success');
+ phase='error';h.client.updateDraft('papa','Otra alerta que fallará antes de publicarse.');await h.client.publish();assert.equal(notices,1);assert.equal(h.client.status.kind,'error');
+ phase='replay';await h.client.publish();assert.equal(notices,1);assert.equal(h.client.status.kind,'success');
+});

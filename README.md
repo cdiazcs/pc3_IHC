@@ -70,12 +70,20 @@ uvicorn main:app --reload --port 8000 --env-file .env
 **Iniciar el frontend** desde otra terminal, en la raíz del proyecto:
 
 ```bash
-python3 -m http.server 8080 --directory AgroVoz-App
+python3 -u -m http.server 8080 --bind 127.0.0.1 --directory AgroVoz-App
 ```
 
-Abrir: `http://127.0.0.1:8080`
+Abrir: `http://localhost:8080`
 
 **Importante:** configurar previamente `backend/.env` con las conexiones locales de Ollama y PostgreSQL. No publicar contraseñas.
+
+### Iniciar desde VS Code
+
+Abrir la raíz del repositorio, entrar en **Ejecutar y depurar**, seleccionar **AgroVoz: abrir en localhost** y pulsar **F5**. La tarea inicia Python y, cuando el servidor está listo, la configuración abre Chrome automáticamente en `http://localhost:8080`. Requiere Python 3 y Chrome instalados; el depurador JavaScript viene integrado en VS Code.
+
+El servidor escucha solo en `127.0.0.1:8080` (localhost IPv4), compatible con el reenvío de **Ports**. En entornos remotos se puede seguir reenviando el puerto 8080 y utilizar la URL que proporciona VS Code; si usa otro puerto local, abrir esa URL. Micrófono y service worker requieren localhost o HTTPS; el reconocimiento depende también del navegador y de sus permisos.
+
+Para detener el servidor, abrir su terminal de tarea y pulsar **Ctrl+C**. Si el puerto 8080 ya está ocupado, detener el servidor anterior antes de iniciar F5. Como alternativa, ejecutar `npm start` dentro de `AgroVoz-App` y abrir manualmente `http://localhost:8080`. Ollama y FastAPI mantienen sus comandos de inicio independientes.
 
 ## 7. Aplicación de conceptos de IHC
 

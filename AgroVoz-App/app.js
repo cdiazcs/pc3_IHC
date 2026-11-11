@@ -1,3 +1,5 @@
+import {parseVoiceCommand} from './modules/voice-commands.js';
+import {createPersonalization,personalizationView} from './modules/personalization.js';
 import {consultLLM} from './modules/llm-client.js';
 import {createRoomsCommunity} from './modules/rooms-client.js';
 /* AgroVoz PC3: LLM local y comunidad real, con demo local conservada. */
@@ -32,21 +34,23 @@ if(!db.accounts[current])current='ana';
 let offlineDemo=false;
 let route=(location.hash.replace('#','')||'inicio');
 let draft={crop:preferredCrop(db.accounts[current]),question:'',photo:null,photoName:'',lastResult:null};
-let modal=null;let toastText='';let toastTimeout;
+let modal=null;let renderedModal=null;let toastText='';let toastTimeout;
 let recording=null;let processing=false;
+let recognitionMode='idle',voiceStopping=false,voiceMessage='Elige Comandos para navegar por voz.',voiceHelp=false,welcomeShown=false;
 let activeRequest=null;
 let interaction={stage:'idle',message:'Puedes escribir o hablar y revisar antes de enviar.'};
 let speechState='idle';let activeUtterance=null;
 function setInteraction(stage,message){
  interaction={stage,message};
- const announcements=document.getElementById('queryAnnouncements');if(announcements)announcements.textContent=message;
+ const announcements=document.getElementById('queryAnnouncements');if(announcements&&announcements.textContent!==message)announcements.textContent=message;
  const status=document.getElementById('interactionStatus');
  if(status){status.textContent=message;status.dataset.state=stage;}
+ updateVoiceFeedback();
  const retry=document.querySelector('[data-action=retry-query]');if(retry)retry.hidden=stage!=='error';
 }
 function cancelActiveQuery(){
  const request=activeRequest;activeRequest=null;processing=false;request?.controller.abort();
- recording?.abort();recording=null;
+ cancelListening();
  setInteraction('idle','Puedes escribir o hablar y revisar antes de enviar.');
 }
 function interactionPanel(){if(!processing&&!['consultar','planta','resultado'].includes(route))return '';return `<section class="query-status" aria-label="Estado de la consulta" aria-busy="${processing}">
@@ -57,10 +61,19 @@ ${processing?`<div class="loading-bar" aria-hidden="true"><span></span></div><p>
 const app=document.getElementById('app');
 // Estado actual del usuario en la demo.
 const account=()=>db.accounts[current];
-const roomsCommunity=createRoomsCommunity({storage:localStorage});
+const roomsCommunity=createRoomsCommunity({storage:localStorage,onPublished:()=>sensorySuccess()});
 // Estado simple de conexión.
 const connected=()=>navigator.onLine && !offlineDemo;
 const save=()=>{try{localStorage.setItem(DB_KEY,JSON.stringify(db));return true}catch{return false}};
+// Una sesión por pestaña; sobrevive recargas si sessionStorage está disponible.
+const learningSession=(()=>{try{const storage=window.sessionStorage;let value=storage?.getItem('agrovoz_learning_session_v1');if(!value){value=crypto.randomUUID();storage?.setItem('agrovoz_learning_session_v1',value);}return value;}catch{return 'page-'+Date.now()+'-'+Math.random();}})();
+const personalization=createPersonalization({accounts:db.accounts,save,sessionId:learningSession});
+let failedQueryOwner=null,microphoneRetryOwner=null;
+function learn(type,payload={},owner=current){return personalization.record(owner,type,payload);}
+function learningUI(kind){return personalizationView({kind,account:account(),summary:personalization.summary(current),cropName,escape:esc});}
+function learningFeedback(record){if(!record)return '';const selected=personalization.summary(current).feedback.find(v=>v.id===record.id)?.value;return `<section class="personalization"><h3>${record.real?'¿Te sirvió esta orientación?':'¿Te resultó útil esta respuesta de demostración?'}</h3><p>Tu valoración es opcional y no cambia la orientación agrícola.</p><div class="btnrow"><button type="button" class="btn light" data-action="learning-feedback" data-value="positive" aria-pressed="${selected==='positive'}" ${account().learning?'':'disabled'}>👍 Sí</button><button type="button" class="btn light" data-action="learning-feedback" data-value="negative" aria-pressed="${selected==='negative'}" ${account().learning?'':'disabled'}>👎 No</button></div>${account().learning?'':'<p>Aprendizaje inactivo: no se guardan valoraciones.</p>'}</section>`;}
+function redrawLearning(action,value){render();const target=document.querySelector(`[data-action="${action}"]${value?`[data-value="${value}"]`:''}`)||document.getElementById('main');target?.focus();}
+
 // ID corto para registros locales.
 const id=()=> (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -69,9 +82,60 @@ const date=x=>new Date(x).toLocaleString('es-PE',{dateStyle:'medium',timeStyle:'
 const badge=(label,kind='')=>`<span class="tag ${kind}">${esc(label)}</span>`;
 const head=(title,desc,eyebrow='AGROVOZ')=>`<div class="panel-head"><div class="eyebrow">${esc(eyebrow)}</div><h1>${title}</h1><p class="lead">${desc}</p></div>`;
 // Navegación entre pantallas.
+function sensorySuccess(){
+ if(account().vibrationEnabled!==true||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return false;
+ try{return typeof navigator.vibrate==='function'?navigator.vibrate(35):false;}catch{return false;}
+}
+function voiceControls(){return `<section class="voice-tools" aria-label="Navegación por voz"><p id="voiceCommandStatus" role="status" aria-live="polite" aria-atomic="true">${esc(voiceMessage)}</p><div class="btnrow"><button type="button" class="btn light" data-action="voice-help" aria-expanded="${voiceHelp}" aria-controls="voiceCommandHelp">Comandos disponibles</button><button type="button" class="btn light" data-action="voice-cancel" ${recording||voiceStopping?'':'hidden'}>Cancelar escucha</button></div>${voiceHelp?'<div id="voiceCommandHelp"><p>Modo Comandos: di una sola frase completa. El modo Hablar de Consultar dicta tu pregunta y no ejecuta comandos.</p><ul><li>ir a inicio</li><li>ir a parcelas</li><li>ir a consultar</li><li>ir a historial</li><li>ir a comunidad</li><li>ir a perfil</li><li>leer respuesta</li><li>detener</li></ul><p>El navegador puede necesitar internet para reconocer voz. No guardamos ni enviamos estos comandos a Ollama.</p></div>':''}</section>`;}
+function updateVoiceFeedback(){
+ document.querySelectorAll?.('[data-action="voice-commands"],[data-action="start-voice"]').forEach(button=>{
+  const commands=button.dataset.action==='voice-commands',active=!!recording&&(commands?recognitionMode==='commands':recognitionMode==='dictation')&&interaction.stage==='listening';
+  button.classList?.toggle('mic-listening',active);button.setAttribute?.('aria-pressed',String(active));
+ });
+ const status=document.getElementById('voiceCommandStatus');if(status&&status.textContent!==voiceMessage)status.textContent=voiceMessage;
+ const cancel=document.querySelector('[data-action=voice-cancel]');if(cancel)cancel.hidden=!recording&&!voiceStopping;
+}
+function cancelListening(){
+ const old=recording;recording=null;recognitionMode='idle';
+ if(old){voiceStopping=true;try{old.abort();}catch{voiceStopping=false;}}
+ if(['listening','voice-processing'].includes(interaction.stage))setInteraction(processing?'consulting':'idle',processing?'AgroVoz está preparando tu orientación':'Escucha detenida. Puedes usar los botones o activar otra escucha.');
+ updateVoiceFeedback();
+}
+function executeVoiceCommand(command){
+ if(!command){voiceMessage='No entendí el comando. Puedes intentarlo otra vez o usar los botones.';updateVoiceFeedback();return false;}
+ if(command.action==='navigate'){navTo(command.route);voiceMessage=`Comando entendido. Abriendo ${ROUTES.find(r=>r[0]===command.route)?.[2]||'la pantalla'}.`;}
+ else if(command.action==='read'){
+  const last=account().history.find(r=>r.real&&r.owner===current)||(draft.lastResult?.real&&draft.lastResult.owner===current?draft.lastResult:null);
+  if(!last){voiceMessage='No hay una respuesta real disponible para leer. Puedes hacer una consulta.';updateVoiceFeedback();return false;}
+  speak(last);voiceMessage='Comando entendido: leer respuesta. '+interaction.message;
+ }else if(command.action==='stop'){cancelListening();stopSpeech();voiceMessage='Comando entendido: detener. Lectura y escucha detenidas.';setInteraction('idle',voiceMessage);}
+ updateVoiceFeedback();return true;
+}
+function startCommands(){
+ if(recording||voiceStopping){voiceMessage='Ya hay una escucha activa. Detén o cancela antes de cambiar de modo.';updateVoiceFeedback();return;}
+ const API=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!API){voiceMessage='Este navegador no admite comandos de voz. Puedes usar los botones y enlaces.';updateVoiceFeedback();return;}
+ const owner=current;
+ try{
+  stopSpeech();const recognizer=new API();recording=recognizer;recognitionMode='commands';
+  recognizer.lang='es-PE';recognizer.continuous=false;recognizer.interimResults=false;recognizer.maxAlternatives=1;
+  let handled=false,errored=false;
+  recognizer.onresult=event=>{
+   if(recording!==recognizer||owner!==current||handled)return;
+   const result=event.results?.[event.resultIndex||0];if(!result||result.isFinal===false)return;
+   handled=true;const command=parseVoiceCommand(result[0]?.transcript);cancelListening();executeVoiceCommand(command);
+  };
+  recognizer.onspeechend=()=>{if(recording===recognizer){setInteraction('voice-processing','Procesando voz.');voiceMessage='Procesando voz del modo Comandos.';updateVoiceFeedback();}};
+  recognizer.onerror=event=>{if(recording!==recognizer||owner!==current)return;errored=true;
+   voiceMessage=event.error==='not-allowed'||event.error==='service-not-allowed'?'Permiso de micrófono denegado. Puedes usar los botones o habilitarlo en el navegador.':event.error==='no-speech'?'No se pudo escuchar. Puedes intentarlo otra vez o usar los botones.':'No se pudo escuchar el comando. Puedes usar los botones.';
+   setInteraction('error',voiceMessage);updateVoiceFeedback();};
+  recognizer.onend=()=>{voiceStopping=false;if(recording===recognizer){recording=null;recognitionMode='idle';if(!handled&&!errored)voiceMessage='No se pudo escuchar. Puedes intentarlo otra vez o usar los botones.';if(!handled&&!errored)setInteraction('idle',voiceMessage);}updateVoiceFeedback();};
+  recognizer.start();voiceMessage='Escuchando comandos. Di una frase de la lista.';setInteraction('listening',voiceMessage);updateVoiceFeedback();
+ }catch{recording=null;recognitionMode='idle';voiceStopping=false;voiceMessage='No se pudo iniciar el micrófono. Puedes usar los botones.';updateVoiceFeedback();}
+}
 function navTo(r){
  if(!PAGE_IDS.includes(r))r='inicio';
- if(r!==route){recording?.abort();recording=null;stopSpeech();}
+ if(r!==route){cancelListening();stopSpeech();}
  route=r;if(location.hash!==`#${r}`)location.hash=r;render();
  window.scrollTo({top:0,behavior:'instant'});document.getElementById('main')?.focus({preventScroll:true});
 }
@@ -79,36 +143,38 @@ function navTo(r){
 function alertToast(text){clearTimeout(toastTimeout);toastText=text;renderToast();toastTimeout=setTimeout(()=>{toastText='';renderToast()},4200)}
 function renderToast(){document.querySelector('.toast')?.remove();if(toastText){let d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=toastText;document.body.appendChild(d)}}
 const icon=e=>({inicio:'🏡',parcelas:'🌾',consultar:'🎙️',planta:'📷',historial:'🕘',alertas:'👥',perfil:'⚙️',alternativas:'🧩'}[e]||'🌱');
-function shell(body){const active=route==='resultado'?'consultar':ROUTES.some(r=>r[0]===route)?route:'inicio';return `<div class="shell">
+function shell(body){const active=route==='resultado'?'consultar':ROUTES.some(r=>r[0]===route)?route:'inicio';return `<div class="shell" ${modal?'inert':''}>
 <aside class="sidebar" aria-label="Navegación principal"><div class="logo"><span class="logo-badge" aria-hidden="true">🌿</span><span>AgroVoz<span class="sublogo">Asistente para pequeños agricultores</span></span></div>
 <nav class="nav" aria-label="Secciones de AgroVoz">${ROUTES.map(([r,em,t])=>`<a class="navlink ${r===active?'active':''}" ${r===active?'aria-current="page"':''} href="#${r}"><span aria-hidden="true">${em}</span>${t}</a>`).join('')}</nav>
 <div class="aside-note"><b>AgroVoz</b>Es un prototipo interactivo diseñado para apoyar a pequeños agricultores mediante consultas agrícolas, reconocimiento de voz y gestión de cultivos. </div></aside>
 <div class="workspace"><header class="topbar"><div class="topbar-title">AgroVoz <span class="muted">/ ${esc(ROUTES.find(([r])=>r===active)?.[2]||'Inicio')}</span></div>
-<div class="top-actions"><span class="status ${connected()?'':'offline'}" role="status">${connected()?'● Con conexión':'● Sin conexión'}</span>
+<div class="top-actions"><button type="button" class="btn small secondary voice-command-button" data-action="voice-commands" aria-describedby="voiceCommandStatus" aria-pressed="${recognitionMode==='commands'&&!!recording}">🎙️ Comandos</button><span class="status ${connected()?'':'offline'}" role="status">${connected()?'● Con conexión':'● Sin conexión'}</span>
 <label for="demoUser" class="visually-hidden hidden">Usuario de demostración</label>
 <select id="demoUser" class="user-switch" aria-label="Cambiar cuenta de demostración">${Object.entries(db.accounts).map(([k,a])=>`<option value="${k}" ${k===current?'selected':''}>${esc(a.name)} · ${esc(a.community)}</option>`).join('')}</select>
 <button type="button" class="btn small secondary" data-action="toggle-offline" aria-pressed="${offlineDemo}">${offlineDemo?'🌐 Volver en línea':'📵 Simular offline'}</button></div></header>
 <main class="main" id="main" tabindex="-1">
-${!connected()?`<div class="banner warn" role="status"><strong>Estás en modo sin conexión.</strong><p>Los datos guardados siguen disponibles. ${route==='alertas'&&roomsCommunity.isReal(current)?'La comunidad real no publica sin conexión. Conserva tu borrador y reintenta al conectar.':'Las consultas y alertas nuevas quedarán pendientes hasta recuperar la conexión. Este estado puede ser simulado.'}</p></div>`:''}
-${interactionPanel()}${body}<footer class="footnote">AgroVoz PC3 · ${account().mode==='server'?'Modo LLM local (requiere conexión)':'Modo demostración sin IA'} · ${route==='alertas'&&roomsCommunity.isReal(current)?'Alertas compartidas en PostgreSQL':'Datos en este navegador'} · <a href="#alternativas">Comparar alternativas</a>.</footer>
+${!connected()?`<div class="banner warn" role="status"><strong>Estás en modo sin conexión.</strong><p>El historial y las preferencias guardados siguen disponibles. La IA y las salas reales requieren conexión con sus servicios. ${route==='alertas'&&roomsCommunity.isReal(current)?'La comunidad real no publica sin conexión. Conserva tu borrador y reintenta al conectar.':'Solo el modo demostración conserva una cola local simulada: no se envía automáticamente al servidor. Este estado puede ser simulado.'}</p></div>`:''}
+${voiceControls()}${interactionPanel()}${body}<footer class="footnote">AgroVoz PC3 · ${account().mode==='server'?'Modo LLM local (requiere conexión)':'Modo demostración sin IA'} · ${route==='alertas'&&roomsCommunity.isReal(current)?'Alertas compartidas en PostgreSQL':'Datos en este navegador'} · <a href="#alternativas">Comparar alternativas</a>.</footer>
 </main></div></div>${modal?renderModal():''}`}
 function renderModal(){if(modal==='alert')return `<div class="modal-wrap" data-dismiss="modal"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle">Confirmar alerta comunitaria</h2><p>Comprueba los datos antes de compartirlos con <b>${esc(account().community)}</b>.</p><div class="result-box"><b>${esc(cropName(draft.crop))}</b><p>${esc(document.getElementById('alertText')?.value||modalDraftText)}</p></div><div class="notice">Solo se compartirá el texto de esta alerta. No se compartirá tu fotografía ni el historial privado.</div><div class="btnrow"><button class="btn" data-action="confirm-alert">${connected()?'Publicar alerta':'Guardar borrador pendiente'}</button><button class="btn light" data-action="cancel-modal">Cancelar</button></div></div></div>`;
 if(modal==='help')return `<div class="modal-wrap" data-dismiss="modal"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle">Ayuda en esta pantalla</h2><p>${esc(helpForRoute())}</p><div class="btnrow"><button class="btn" data-action="cancel-modal">Entendido</button></div></div></div>`;
 return ''}
 function helpForRoute(){return ({inicio:'Elige Consultar si deseas describir un problema o Revisar planta para adjuntar una fotografía.',parcelas:'Selecciona un cultivo para consultar. También puedes verlo en forma de lista.',consultar:'Elige un cultivo, habla o escribe y revisa el texto antes de enviar. Comprueba el modo indicado: demostración o IA local. Si la orientación tarda, puedes cancelar la espera; si falla, conserva tu texto y usa Revisar y reintentar. Solo se envían cultivo y pregunta, nunca fotos ni tu perfil.',planta:'Elige un cultivo, toma o carga una fotografía y comprueba la vista previa antes de enviarla.',historial:'Aquí están las consultas de esta cuenta guardadas en este navegador.',alertas:'Las alertas son visibles para la comunidad elegida. Debes confirmar antes de compartir.',perfil:'Puedes modificar tu perfil, preferencias y accesos frecuentes.'})[route]||'Compara las tres alternativas de diseño y revisa cuál funciona mejor para tu contexto.'}
 // Pantalla principal de inicio.
-function pageInicio(){let a=account();return `<section class="hero"><div><div class="eyebrow" style="color:#d0f4df">HOLA, ${esc(a.name.toUpperCase())} 👋</div><h1>Tu campo, tus preguntas,<br>respuestas más sencillas.</h1><p>Habla, escribe o revisa una planta. AgroVoz te guía con pasos claros y acceso a tus cultivos.</p><div class="btnrow"><button data-route="consultar" class="btn secondary">🎙️ Hacer una consulta</button><button data-route="planta" class="btn light">📷 Revisar planta</button></div></div><div class="hero-illustration" aria-hidden="true">🌱</div></section><div class="section-header"><h2>¿Qué necesitas hoy?</h2><button class="btn small light" data-action="show-help">❔ Ayuda</button></div>
+function pageInicio(){let a=account();return `<section class="hero"><div><div class="eyebrow" style="color:#d0f4df">HOLA, ${esc(a.name.toUpperCase())} 👋</div><h1>Tu campo, tus preguntas,<br>respuestas más sencillas.</h1><p>Habla, escribe o revisa una planta. AgroVoz te guía con pasos claros y acceso a tus cultivos.</p><div class="btnrow"><button data-route="consultar" class="btn secondary">🎙️ Hacer una consulta</button><button data-route="planta" class="btn light">📷 Revisar planta</button></div></div><div class="hero-illustration ${welcomeShown?'':'welcome-sprout'}" aria-hidden="true">🌱</div></section><div class="section-header"><h2>¿Qué necesitas hoy?</h2><button class="btn small light" data-action="show-help">❔ Ayuda</button></div>
 <div class="grid three"><button class="card action-card" data-route="parcelas"><div class="card-icon" aria-hidden="true">🌾</div><h3>Mis parcelas</h3><p>Consulta tus cultivos con iconos grandes y una lista accesible.</p>${badge(`${a.crops.length} cultivos`)}</button>
 <button class="card action-card" data-route="consultar"><div class="card-icon" aria-hidden="true">🎙️</div><h3>Consultar por voz</h3><p>Formula tu pregunta y revisa lo que el sistema entendió.</p>${badge('Voz + texto')}</button>
 <button class="card action-card" data-route="alertas"><div class="card-icon" aria-hidden="true">🤝</div><h3>Alertas de mi comunidad</h3><p>Comparte observaciones y conoce avisos de otros agricultores.</p>${badge(a.community)}</button></div>
 ${a.learning&&a.uses>=3&&!a.quickAccess&&!a.quickSuggestionDismissed?`<div class="banner" style="margin-top:22px"><strong>✨ Sugerencia personalizada</strong><p>Has guardado ${a.uses} consultas en este perfil. ¿Quieres un acceso directo a Consultar en tu inicio? No cambiaremos tu pantalla sin que aceptes.</p><div class="btnrow" style="margin-top:10px"><button class="btn small" data-action="accept-personalization">Sí, agregar</button><button class="btn small light" data-action="decline-personalization">No, gracias</button></div></div>`:''}
+${learningUI('home')}
 ${a.quickAccess?`<div class="section-header"><h2>Tu acceso frecuente</h2></div><button class="btn" data-route="consultar">🎙️ Ir directamente a Consultar</button>`:''}
 <div class="section-header"><h2>Estado del campo</h2></div><div class="grid two"><div class="card"><div class="eyebrow">MIS CULTIVOS</div><h2>${a.crops.length} registrados</h2><p>${esc(a.crops.map(cropName).join(' · ')||'Todavía sin cultivos')}</p><button class="btn small secondary" data-route="parcelas">Ver parcelas</button></div><div class="card"><div class="eyebrow">ACTIVIDAD GUARDADA</div><h2>${a.history.length} consultas</h2><p>${a.queue.length} operaciones pendientes · ${a.draftAlerts.length} borradores de alertas</p><button class="btn small secondary" data-route="historial">Abrir historial</button></div></div>`}
 function pageParcelas(){const a=account();return `${head('Mis parcelas y cultivos','Selecciona un cultivo en el lienzo. También puedes utilizar la lista accesible, sin arrastrar ni hacer gestos precisos.')}
 <div class="grid two"><div class="card"><h2>Vista visual de mi parcela</h2><p class="subtle">Lienzo navegable con botones, sin depender solo del color.</p><div class="crop-grid">${a.crops.map(c=>{let crop=crops.find(x=>x.id===c)||crops[5];return `<button data-action="crop-select" data-crop="${esc(c)}" class="crop-item" aria-label="Elegir cultivo ${esc(crop.name)}"><span class="crop-art" aria-hidden="true">${crop.emoji}</span><span class="crop-name">${esc(crop.name)}</span><span class="crop-meta">Seleccionar cultivo</span></button>`}).join('')||'<p>No hay cultivos registrados.</p>'}</div></div>
 <div class="card"><h2>Lista equivalente y accesible</h2><p>Las mismas acciones están disponibles con teclado o lector de pantalla.</p><div class="list">${a.crops.map(c=>`<div class="listitem"><div><strong>${esc(cropName(c))}</strong><p>Registrado en mi parcela</p></div><button class="btn small secondary" data-action="crop-select" data-crop="${esc(c)}">Consultar</button></div>`).join('')}</div><div class="divider"></div><form id="addCropForm"><div class="formrow"><label for="addCrop">Añadir otro cultivo</label><select class="field" id="addCrop" name="crop">${crops.filter(c=>!a.crops.includes(c.id)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')||'<option value="">Ya registraste todos los cultivos</option>'}</select></div><button class="btn" type="submit">Añadir cultivo</button></form></div></div>`}
 function cropOptions(selected){return crops.map(c=>`<option value="${c.id}" ${c.id===selected?'selected':''}>${c.emoji} ${c.name}</option>`).join('')}
-function pageConsultar(){return `${head('Consulta a AgroVoz','Puedes hablar o escribir. La consulta siempre debe revisarse antes de enviarse.','INTERFAZ DE VOZ + TEXTO')}
+function pageConsultar(){return `${head('Consulta a AgroVoz',personalization.summary(current).difficulty?'Vamos paso a paso. Revisa tu texto; puedes pedir ayuda cuando quieras.':'Puedes hablar o escribir. La consulta siempre debe revisarse antes de enviarse.','INTERFAZ DE VOZ + TEXTO')}
+${learningUI('consult')}
 <p>${badge(account().mode==='server'?'IA local · requiere servicio':'Demostración · sin IA')} <a href="#perfil">Cambiar modo en Mi perfil</a></p>
 <div class="grid two"><div class="card"><div class="stepper"><span class="step current">1. Preguntar</span><span class="step">2. Revisar</span><span class="step">3. Orientación</span></div>
 <form id="consultForm" aria-busy="${processing}"><fieldset class="query-fields" ${processing?'disabled':''}><legend class="sr-only">Datos de la consulta</legend><div class="formrow"><label for="consultCrop">¿Qué cultivo deseas consultar?</label><select id="consultCrop" class="field" name="crop">${cropOptions(draft.crop)}</select></div>
@@ -122,7 +188,7 @@ function pagePlanta(){return `${head('Revisar planta','Adjunta una foto y descri
 ${draft.photo?`<img class="image-preview" src="${draft.photo}" alt="Fotografía de planta seleccionada para revisión"/><p class="subtle">Archivo revisado: ${esc(draft.photoName)}</p><button type="button" class="btn small light" data-action="remove-photo">↩️ Cambiar imagen</button>`:''}
 <div class="formrow" style="margin-top:17px"><label for="photoDescription">¿Qué síntomas observas?</label><textarea id="photoDescription" name="question" class="field" maxlength="700" placeholder="Describe hojas, tallos o color de la planta...">${esc(draft.question)}</textarea></div>
 <button class="btn" type="submit">Revisar datos y continuar →</button></fieldset></form></div>
-<div class="card"><h2>Consejos para tomar la foto</h2><p>🌤️ Busca buena iluminación.</p><p>🌿 Fotografía la parte afectada con nitidez.</p><p>🔎 Incluye otra imagen si necesitas comparar.</p><p>🧑‍🌾 La fotografía no garantiza identificar una enfermedad.</p><div class="notice">En la PC2 la imagen se muestra y confirma realmente, pero no se analiza por un modelo visual conectado.</div></div></div>`}
+<div class="card"><h2>Consejos para tomar la foto</h2><p>🌤️ Busca buena iluminación.</p><p>🌿 Fotografía la parte afectada con nitidez.</p><p>🔎 Incluye otra imagen si necesitas comparar.</p><p>🧑‍🌾 La fotografía no garantiza identificar una enfermedad.</p><div class="notice">La fotografía se muestra y guarda solo en este navegador. No se envía a Ollama ni se analiza con visión artificial.</div></div></div>`}
 function mockAdvice(question,crop,hasPhoto){let txt=question.toLocaleLowerCase('es');let observation='La información ingresada necesita verificación directa; la aplicación no puede confirmar una enfermedad.';
 if(/amarill|amarillento/.test(txt))observation='Mencionaste hojas amarillas. Es un síntoma que puede tener distintas causas y no permite un diagnóstico por sí solo.';
 else if(/mancha|punto|lesi[oó]n/.test(txt))observation='Mencionaste manchas o lesiones. Conviene revisar su ubicación, evolución y las condiciones del cultivo.';
@@ -133,7 +199,7 @@ const pending=r.status==='pendiente';return `${head('Orientación de AgroVoz',r.
 <div class="banner warn"><strong>⚠️ ${r.real?"Respuesta LLM no validada":"Orientación simulada, no diagnóstico"}</strong><p>${r.real?"La orientación fue generada automáticamente. No se consultaron manuales agrícolas verificados ni se analizó la fotografía.":"El modo de demostración no utiliza LLM ni reconoce enfermedades en fotos."} No tomes decisiones agrícolas basadas solo en esta pantalla.</p></div>
 <div class="grid two"><div class="card"><div class="btnrow" style="justify-content:space-between">${badge(pending?'Pendiente de conexión':'Consulta guardada',pending?'amber':'')} ${badge(cropName(r.crop))} ${badge(r.real?`LLM · ${r.response.provider}`:'Demo · sin IA',r.real?'':'amber')}</div><div class="divider"></div><h2>${esc(r.response.headline)}</h2><p class="result-lead">${esc(r.response.observation)}</p><h3>Pasos sugeridos para verificar</h3><ol class="help-list">${r.response.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><div class="result-box"><h3>Fuente y limitaciones</h3><p>${esc(r.response.source)}</p><p style="margin-top:9px">${esc(r.response.limitations)}</p></div><div class="btnrow" style="margin-top:19px"><button class="btn secondary" data-action="speak-result">🔊 Escuchar</button><button class="btn light" data-action="pause-speech">${speechState==='paused'?'▶ Reanudar':'⏸ Pausar'}</button><button class="btn light" data-action="stop-speech">⏹ Detener</button></div></div>
 <div class="card"><h2>Tu consulta</h2><p><b>Cultivo:</b> ${esc(cropName(r.crop))}</p><p><b>Pregunta:</b> ${esc(r.question)}</p>${r.photo?`<img class="image-preview" src="${r.photo}" alt="Imagen confirmada en la consulta"/>`:''}
-<div class="divider"></div><h3>¿Deseas informar a tu comunidad?</h3><p>Una alerta comunitaria solo se publica después de que revises su contenido.</p><button class="btn" data-route="alertas">🤝 Preparar alerta</button><div class="divider"></div><button class="btn small light" data-route="historial">Ver historial</button></div></div>`}
+<div class="divider"></div><h3>¿Deseas informar a tu comunidad?</h3><p>Una alerta comunitaria solo se publica después de que revises su contenido.</p><button class="btn" data-route="alertas">🤝 Preparar alerta</button><div class="divider"></div><button class="btn small light" data-route="historial">Ver historial</button>${learningFeedback(r)}</div></div>`}
 function pageHistorial(){const a=account();return `${head('Mi historial de consultas','Tus consultas y borradores están guardados únicamente en este navegador y asociados a esta cuenta de demostración.')}
 <div class="grid two"><div class="card"><h2>Consultas guardadas</h2><div class="list">${a.history.length?a.history.map(r=>`<div class="listitem"><div><strong>${esc(cropName(r.crop))} · ${esc(r.question.slice(0,75))}</strong><p>${date(r.date)}</p>${badge(r.status==='pendiente'?'Pendiente':'Guardada',r.status==='pendiente'?'amber':'')}</div><button class="btn small secondary" data-action="view-history" data-id="${esc(r.id)}">Abrir</button></div>`).join(''):'<div class="empty">Todavía no hay consultas guardadas. <a href="#consultar">Crear la primera</a>.</div>'}</div></div><div class="card"><h2>Operaciones pendientes</h2><p>Las consultas y alertas creadas sin conexión se mantienen para su sincronización demostrativa.</p>${a.queue.length?`<div class="list">${a.queue.map(q=>`<div class="listitem"><div><b>${q.type==='consult'?'Consulta':'Alerta'}</b><p>${date(q.date)}</p></div>${badge('Pendiente','amber')}</div>`).join('')}</div>`:'<p>✅ No hay operaciones pendientes.</p>'}
 <div class="divider"></div><button class="btn secondary" data-action="sync" ${!connected()?'disabled':''}>🔄 Sincronizar pendientes</button></div></div>`}
@@ -141,40 +207,45 @@ function pageAlertas(){const modeSelector=roomsCommunity.selector(current);if(ro
 <div class="grid two"><div class="card"><h2>Publicar una alerta</h2><form id="alertForm"><div class="formrow"><label for="alertCrop">Cultivo</label><select id="alertCrop" class="field" name="crop">${cropOptions(draft.crop)}</select></div><div class="formrow"><label for="alertText">¿Qué observaste?</label><textarea id="alertText" class="field" name="text" minlength="12" maxlength="500" required placeholder="Ej.: Vi manchas en algunas plantas de papa de mi parcela...">${esc(draft.question)}</textarea></div><div class="notice">Antes de compartir, verás una vista previa y tendrás que confirmar expresamente.</div><button type="submit" class="btn">Revisar antes de compartir</button></form>${a.draftAlerts.length?`<div class="divider"></div><h3>Mis borradores</h3>${a.draftAlerts.map(x=>`<p>${esc(cropName(x.crop))}: ${esc(x.text.slice(0,100))}</p>`).join('')}`:''}</div>
 <div class="card"><div class="btnrow" style="justify-content:space-between"><h2>Avisos: ${esc(a.community)}</h2>${badge(`${visible.length} publicados`)}</div><div class="list">${visible.length?visible.slice().reverse().map(x=>`<div class="listitem"><div><strong>${esc(cropName(x.crop))} · ${esc(db.accounts[x.owner]?.name||'Agricultor')}</strong><p>${esc(x.text)}</p><small>${date(x.date)}</small></div>${badge('Aviso')}</div>`).join(''):'<div class="empty">No hay alertas publicadas en esta comunidad.</div>'}</div><div class="divider"></div><p class="subtle">Esta comunidad es una simulación entre perfiles locales; no existe un servidor ni colaboración entre teléfonos diferentes.</p></div></div>`}
 function pagePerfil(){let a=account();return `${head('Mi perfil y preferencias','AgroVoz adapta la experiencia con tu autorización y siempre permite deshacer cambios.')}
+${learningUI('profile')}
+<section class="card"><h2>Retroalimentación opcional</h2><label class="switch"><input id="vibrationPref" type="checkbox" ${a.vibrationEnabled===true?'checked':''}>Permitir vibración breve al guardar (si este dispositivo la admite)</label><p>No se añaden sonidos. Con movimiento reducido tampoco se vibra.</p></section>
 <div class="grid two"><div class="card"><h2>Datos de mi cuenta demostrativa</h2><form id="profileForm"><div class="formrow"><label for="profileName">Nombre de uso</label><input class="field" id="profileName" name="name" maxlength="50" value="${esc(a.name)}" required /></div><div class="formrow"><label for="profileLocality">Localidad</label><input class="field" id="profileLocality" name="locality" maxlength="60" value="${esc(a.locality)}" required /></div><div class="formrow"><label for="profileExp">Experiencia agrícola</label><select id="profileExp" class="field" name="experience"><option ${a.experience==='Inicial'?'selected':''}>Inicial</option><option ${a.experience==='Intermedia'?'selected':''}>Intermedia</option><option ${a.experience==='Avanzada'?'selected':''}>Avanzada</option></select></div><button class="btn" type="submit">Guardar perfil</button></form></div>
-<div class="card"><h2>Personalización continua</h2><div class="formrow"><label for="preferredCrop">Cultivo al iniciar una consulta</label><select id="preferredCrop" class="field">${cropOptions(preferredCrop(a))}</select><span class="field-hint">Se guarda solo en este perfil. Puedes elegir otro cultivo al consultar.</span></div><label class="switch"><input id="voicePref" type="checkbox" ${a.voice?'checked':''}/>Leer automáticamente las nuevas respuestas (puedes desactivarlo)</label><label class="switch"><input id="learnPref" type="checkbox" ${a.learning?'checked':''}/>Autorizar sugerencias según uso</label><label class="switch"><input id="quickPref" type="checkbox" ${a.quickAccess?'checked':''}/>Mostrar acceso frecuente en el inicio</label><div class="formrow"><label for="assistantMode">Motor de orientación</label><select id="assistantMode" class="field"><option value="demo" ${(a.mode||'demo')==='demo'?'selected':''}>Demostración sin IA (recomendada para PC2)</option><option value="server" ${a.mode==='server'?'selected':''}>LLM conectado: requiere backend configurado</option></select><span class="field-hint">El modo LLM envía texto al backend local en puerto 8000; nunca fotografías. Sin proveedor no procesa.</span></div><div class="divider"></div><p class="subtle">Consultas guardadas: ${a.uses}. Las sugerencias usan este conteo local, no tus emociones ni tu historial completo. Puedes desactivarlas o quitar el acceso sugerido sin cambiar tus otras preferencias.</p><button class="btn secondary" data-action="reset-preferences">↩ Quitar acceso sugerido</button></div></div>
+<div class="card"><h2>Personalización continua</h2><div class="formrow"><label for="preferredCrop">Cultivo al iniciar una consulta</label><select id="preferredCrop" class="field">${cropOptions(preferredCrop(a))}</select><span class="field-hint">Se guarda solo en este perfil. Puedes elegir otro cultivo al consultar.</span></div><label class="switch"><input id="voicePref" type="checkbox" ${a.voice?'checked':''}/>Leer automáticamente las nuevas respuestas (puedes desactivarlo)</label><label class="switch"><input id="learnPref" type="checkbox" ${a.learning?'checked':''}/>Autorizar sugerencias según uso</label><label class="switch"><input id="quickPref" type="checkbox" ${a.quickAccess?'checked':''}/>Mostrar acceso frecuente en el inicio</label><div class="formrow"><label for="assistantMode">Motor de orientación</label><select id="assistantMode" class="field"><option value="demo" ${(a.mode||'demo')==='demo'?'selected':''}>Demostración sin IA (simulación local)</option><option value="server" ${a.mode==='server'?'selected':''}>LLM conectado: requiere backend configurado</option></select><span class="field-hint">El modo LLM necesita FastAPI y Ollama disponibles. Se envían cultivo y pregunta, nunca fotografías. Si falla, conservamos tu texto; puedes elegir explícitamente la demostración.</span></div><div class="divider"></div><p class="subtle">Consultas guardadas: ${a.uses}. Las sugerencias usan este conteo local, no tus emociones ni tu historial completo. Puedes desactivarlas o quitar el acceso sugerido sin cambiar tus otras preferencias.</p><button class="btn secondary" data-action="reset-preferences">↩ Quitar acceso sugerido</button></div></div>
 <div class="notice">Privacidad de la demostración: este selector de cuentas no autentica personas. No ingreses datos reales sensibles; las cuentas solo se separan en almacenamiento local.</div>`}
-function pageAlternativas(){return `${head('Tres alternativas de diseño','Tres conceptos visuales diferentes, necesarios para la PC2. La alternativa B organiza el prototipo navegable actual.', 'ETAPA 2 · DISEÑO DE INTERACCIONES')}
+function pageAlternativas(){return `${head('Tres alternativas de diseño','Tres alternativas de interacción conservadas del diseño inicial. La alternativa B organiza la interfaz actual.', 'ETAPA 2 · DISEÑO DE INTERACCIONES')}
 <div class="alt-layout"><div class="card"><h2>A. Centrada en voz</h2><p class="subtle">Entrada principal por micrófono; texto alternativo.</p><div class="alt-screen" aria-label="Boceto A: asistente por voz"><h3>Hola, agricultor 🌿</h3><div class="mic-big" aria-hidden="true">🎙️</div><p style="text-align:center">¿Qué quieres consultar?</p><div class="mini-bar">Escribir pregunta...</div><div class="mini-bar" style="background:#e5f3e8">Escuchar respuesta</div></div><p style="margin-top:12px"><b>Fortaleza:</b> poca escritura. <b>Riesgo:</b> ruido o falta de permiso.</p></div>
 <div class="card"><h2>B. Parcela interactiva</h2><p class="subtle">Metáfora espacial con accesos directos y lista equivalente.</p><div class="alt-screen" aria-label="Boceto B: parcela visual"><h3>Mi parcela 🌱</h3><div class="mini-grid"><span>🥔<br>Papa</span><span>🌽<br>Maíz</span><span>🍅<br>Tomate</span><span>🌾<br>Otro</span></div><div class="mini-bar">🎙️ Consultar</div><div class="mini-bar">📷 Revisar planta</div></div><p style="margin-top:12px"><b>Fortaleza:</b> reconocimiento de cultivos. <b>Riesgo:</b> requiere alternativa para lector de pantalla.</p></div>
 <div class="card"><h2>C. Guiada paso a paso</h2><p class="subtle">Asistente secuencial con una decisión por pantalla.</p><div class="alt-screen" aria-label="Boceto C: consulta guiada"><h3>Revisar mi planta</h3><div class="mini-bar">① Elegir cultivo ✓</div><div class="mini-bar">② Describir síntomas ✓</div><div class="mini-bar">③ Adjuntar fotografía</div><div class="mini-bar">④ Confirmar y consultar</div><div class="mini-bar" style="background:#e5f3e8">Siguiente →</div></div><p style="margin-top:12px"><b>Fortaleza:</b> guía clara. <b>Riesgo:</b> más transiciones.</p></div></div>
 <div class="section-header"><h2>Selección argumentada</h2></div><div class="card"><p>Se adopta provisionalmente la alternativa <b>B (parcela interactiva)</b>, combinando voz de A y pasos guiados de C. La decisión requiere validar sus hipótesis con agricultores reales.</p><div class="btnrow"><button class="btn" data-route="parcelas">Probar parcela interactiva</button><button class="btn secondary" data-route="consultar">Probar voz / texto</button></div></div>`}
-function render(){if(!PAGE_IDS.includes(route))route='inicio';const pages={inicio:pageInicio,parcelas:pageParcelas,consultar:pageConsultar,planta:pagePlanta,historial:pageHistorial,resultado:pageResultado,alertas:pageAlertas,perfil:pagePerfil,alternativas:pageAlternativas};app.innerHTML=shell((pages[route]||pageInicio)());roomsCommunity.sync(document.getElementById('rooms-root'),{profile:current,name:account().name,crop:draft.crop,online:connected()});renderToast()}
+function render(){const previousModal=renderedModal;if(!PAGE_IDS.includes(route))route='inicio';const pages={inicio:pageInicio,parcelas:pageParcelas,consultar:pageConsultar,planta:pagePlanta,historial:pageHistorial,resultado:pageResultado,alertas:pageAlertas,perfil:pagePerfil,alternativas:pageAlternativas};app.innerHTML=shell((pages[route]||pageInicio)());if(route==='inicio')welcomeShown=true;updateVoiceFeedback();roomsCommunity.sync(document.getElementById('rooms-root'),{profile:current,name:account().name,crop:draft.crop,online:connected()});renderToast();if(modal){document.querySelector('.modal [data-action=cancel-modal]')?.focus();}else if(previousModal){document.querySelector(previousModal==='help'?'[data-action=show-help]':'#alertForm button[type=submit]')?.focus();}renderedModal=modal;}
 let modalDraftText='';
 // Procesa las consultas y guarda sus resultados.
-function syncQueue(){if(!connected()){alertToast('Sin conexión. La cola sigue guardada.');return}let a=account(),n=a.queue.length;if(!n){alertToast('No hay operaciones pendientes.');return}for(const q of a.queue){if(q.type==='consult'){const item=a.history.find(r=>r.id===q.recordId);if(item)item.status='guardada'}else if(q.type==='alert'){if(!db.alerts.some(v=>v.id===q.recordId))db.alerts.push(q.alert);a.draftAlerts=a.draftAlerts.filter(x=>x.id!==q.recordId)}}a.queue=[];save();render();alertToast(`${n} operación(es) sincronizadas en esta simulación local.`)}
+function syncQueue(){if(!connected()){alertToast('Sin conexión. La cola sigue guardada.');return}let a=account(),n=a.queue.length;if(!n){alertToast('No hay operaciones pendientes.');return}for(const q of a.queue){if(q.type==='consult'){const item=a.history.find(r=>r.id===q.recordId);if(item)item.status='guardada'}else if(q.type==='alert'){if(!db.alerts.some(v=>v.id===q.recordId))db.alerts.push(q.alert);a.draftAlerts=a.draftAlerts.filter(x=>x.id!==q.recordId)}}a.queue=[];save();render();alertToast(`${n} operación(es) procesadas solo en esta simulación local; no se enviaron al servidor.`)}
 async function makeRecord(){
  if(processing)return;
  const owner=current,a=account(),snapshot={...draft};
  const server=(a.mode||'demo')==='server';
  const newr={id:id(),owner,crop:snapshot.crop,question:snapshot.question.trim()||'Consulta visual con fotografía.',photo:snapshot.photo,date:new Date().toISOString(),status:connected()?'guardada':'pendiente'};
  const request={owner,question:newr.question,controller:new AbortController()};
+ if(server&&connected()&&failedQueryOwner===owner){learn('retry',{},owner);failedQueryOwner=null;}
  if(server){
   if(!connected()){setInteraction('error','El modo LLM necesita conexión al backend. Tu texto sigue disponible. Elige modo demostración solo si deseas una respuesta simulada.');render();return;}
   processing=true;activeRequest=request;
-  recording?.abort();recording=null;
+  cancelListening();
   setInteraction('consulting','AgroVoz está preparando tu orientación');render();document.getElementById('interactionStatus')?.focus();
   try{
    newr.response=await consultLLM({crop:cropName(newr.crop),question:newr.question},{signal:request.controller.signal});newr.real=true;
   }catch(error){
-   if(activeRequest===request){setInteraction('error',`${error.message} Tu pregunta sigue disponible; no se guardó una orientación.`);}
+   if(activeRequest===request){if(!request.controller.signal.aborted){failedQueryOwner=owner;learn('error',{},owner);}setInteraction('error',`${error.message} Tu pregunta sigue disponible; no se guardó una orientación.`);}
    return;
   }finally{
    if(activeRequest===request){activeRequest=null;processing=false;render();if(interaction.stage==='error')document.querySelector('[data-action=retry-query]')?.focus();}
   }
   if(request.controller.signal.aborted||current!==owner)return;
  }else{newr.response=mockAdvice(newr.question,newr.crop,!!newr.photo);newr.real=false;}
- a.history.unshift(newr);a.uses++;
+ a.history.unshift(newr);if(a.learning===true)a.uses++;
+ learn('query',{id:newr.id,mode:snapshot.voiceInput?'voice':'text',crop:newr.crop,real:newr.real===true},owner);failedQueryOwner=null;
+ draft.voiceInput=false;draft.transcription=null;draft.transcriptionEdited=false;
  if(!connected())a.queue.push({id:id(),recordId:newr.id,type:'consult',date:newr.date});
  draft.lastResult=newr;
  const persisted=save();
@@ -201,12 +272,14 @@ try{const bitmap=await createImageBitmap(file);const scale=Math.min(1,800/Math.m
 // Controla la entrada por voz.
 function startVoice(){
  if(processing)return;
+ if(recording||voiceStopping){voiceMessage='Ya hay una escucha activa. Detén o cancela antes de cambiar de modo.';updateVoiceFeedback();return;}
  const API=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!API){setInteraction('error','Este navegador no admite reconocimiento de voz. Puedes escribir tu pregunta.');document.getElementById('question')?.focus();return;}
  const owner=current;
+ if(microphoneRetryOwner===owner){learn('retry',{},owner);microphoneRetryOwner=null;}
  try{
-  stopSpeech();recording?.abort();const recognizer=new API();recording=recognizer;
-  recognizer.lang='es-PE';recognizer.interimResults=false;recognizer.maxAlternatives=1;const seenResults=new Set();
+  stopSpeech();recording?.abort();const recognizer=new API();recording=recognizer;recognitionMode='dictation';
+  recognizer.lang='es-PE';recognizer.interimResults=false;recognizer.maxAlternatives=1;const seenResults=new Set();let microphoneErrorRecorded=false,dictationReceived=false;
   recognizer.onresult=event=>{
    if(recording!==recognizer||current!==owner||processing)return;
    const el=document.getElementById('question');if(!el)return;
@@ -217,27 +290,30 @@ function startVoice(){
     seenResults.add(index);fragments.push(text);
    }
    if(fragments.length){
-    el.value=((el.value?el.value+' ':'')+fragments.join(' ')).slice(0,700);draft.question=el.value;
-    setInteraction('transcribed','Transcripción lista. Puedes corregir el texto y después revisar y enviar.');el.focus();
+    dictationReceived=true;el.value=((el.value?el.value+' ':'')+fragments.join(' ')).slice(0,700);draft.question=el.value;draft.voiceInput=true;draft.transcription=el.value;draft.transcriptionEdited=false;learn('success',{},owner);
+    setInteraction('transcribed','Transcripción lista. Puedes corregir el texto y después revisar y enviar.');render();document.getElementById('question')?.focus();
    }
   };
   recognizer.onerror=event=>{
-   if(recording!==recognizer)return;
+   if(recording!==recognizer||current!==owner)return;
+   if(event.error!=='aborted'&&!microphoneErrorRecorded){learn('microphoneError',{},owner);microphoneErrorRecorded=true;microphoneRetryOwner=owner;}
    setInteraction('error',event.error==='not-allowed'||event.error==='service-not-allowed'?
     'Permiso de micrófono denegado. Puedes habilitarlo en el navegador o escribir tu pregunta.':
     'No se pudo reconocer la voz. Puedes escribir o volver a intentar con el micrófono.');
+   render();document.getElementById('question')?.focus();
   };
+  recognizer.onaudioend=()=>{if(recording===recognizer&&!dictationReceived)setInteraction('voice-processing','Procesando voz. Espera un momento.');};
   recognizer.onend=()=>{
-   if(recording!==recognizer)return;recording=null;
-   if(interaction.stage==='listening')setInteraction('idle','Micrófono detenido. Revisa o escribe el texto antes de enviarlo.');
+   voiceStopping=false;if(recording!==recognizer){updateVoiceFeedback();return;}recording=null;recognitionMode='idle';updateVoiceFeedback();
+   if(!dictationReceived&&['listening','voice-processing'].includes(interaction.stage))setInteraction('idle','No se pudo escuchar. Puedes intentarlo otra vez o escribir.');
   };
   recognizer.start();setInteraction('listening','Escuchando. Habla con calma; después podrás corregir la transcripción.');
- }catch{recording=null;setInteraction('error','No se pudo iniciar el micrófono. Puedes escribir tu pregunta.');}
+ }catch{recording=null;microphoneRetryOwner=owner;learn('microphoneError',{},owner);setInteraction('error','No se pudo iniciar el micrófono. Puedes escribir tu pregunta.');render();document.getElementById('question')?.focus();}
 }
 function stopVoice(){
  try{
   // stop() puede entregar una transcripción final antes de onend; no invalidarla.
-  recording?.stop();setInteraction('transcribed','Micrófono detenido. Revisa el texto antes de enviar.');
+  recording?.stop();setInteraction('voice-processing','Micrófono detenido. Revisa el texto antes de enviar.');
  }catch{recording=null;setInteraction('error','No se pudo detener el micrófono. Puedes revisar y escribir tu consulta.');}
 }
 // Controla la lectura en voz alta.
@@ -254,13 +330,13 @@ function pauseSpeech(){
  else if(synth.speaking||speechState==='speaking'){synth.pause();speechState='paused';setInteraction('ready','Lectura pausada. Puedes reanudarla o detenerla.');}
  updateSpeechButtons();
 }
-function speak(){
- const r=draft.lastResult||account().history[0],synth=window.speechSynthesis;
+function speak(recordOverride=null){
+ const r=recordOverride||draft.lastResult||account().history[0],synth=window.speechSynthesis;
  const Utterance=window.SpeechSynthesisUtterance||globalThis.SpeechSynthesisUtterance;
  if(!r){alertToast('Primero realiza una consulta.');return;}
  if(!synth||!Utterance){setInteraction('ready','La lectura por voz no está disponible. Puedes leer la respuesta en pantalla.');return;}
  try{
-  stopSpeech();const owner=current;
+  cancelListening();stopSpeech();const owner=current;
   const t=new Utterance(`${r.response.headline}. ${r.response.observation} ${r.response.steps.join('. ')}. ${r.response.limitations}`);
   t.lang='es-PE';t.rate=.92;
   t.onend=()=>{if(current===owner&&activeUtterance===t){speechState='idle';updateSpeechButtons();setInteraction('ready','Lectura terminada. La orientación sigue disponible en tu historial.');}};
@@ -273,38 +349,56 @@ function speak(){
 function updateStatus(){document.querySelectorAll('.status').forEach(e=>{e.textContent=connected()?'● Con conexión':'● Sin conexión';e.classList.toggle('offline',!connected())})}
 window.addEventListener('hashchange',()=>{
  const next=location.hash.slice(1)||'inicio';if(next==='main'){document.getElementById('main')?.focus();return;}if(next===route)return;
- recording?.abort();recording=null;stopSpeech();route=next;render();document.getElementById('main')?.focus({preventScroll:true});
+ cancelListening();stopSpeech();route=next;render();document.getElementById('main')?.focus({preventScroll:true});
 });
 window.addEventListener('online',()=>{syncQueue();render()});window.addEventListener('offline',()=>render());
-document.addEventListener('input',e=>{if(e.target.id==='question'||e.target.id==='photoDescription')draft.question=e.target.value});
+document.addEventListener('input',e=>{if(e.target.id==='question'||e.target.id==='photoDescription'){draft.question=e.target.value;if(draft.voiceInput&&draft.transcription!==e.target.value&&!draft.transcriptionEdited){learn('edit');draft.transcriptionEdited=true;}if(!e.target.value.trim())draft.voiceInput=false;}});
 document.addEventListener('change',e=>{
-if(e.target.id==='demoUser'){cancelActiveQuery();stopSpeech();current=e.target.value;localStorage.setItem(USER_KEY,current);draft={crop:preferredCrop(account()),question:'',photo:null,photoName:'',lastResult:null};window.speechSynthesis?.cancel?.();modal=null;render();alertToast(`Ahora estás en el perfil de ${account().name}. Datos privados separados.`)}
+if(e.target.id==='demoUser'){cancelActiveQuery();stopSpeech();personalization.clearRuntime(current);failedQueryOwner=null;microphoneRetryOwner=null;current=e.target.value;localStorage.setItem(USER_KEY,current);draft={crop:preferredCrop(account()),question:'',photo:null,photoName:'',lastResult:null};window.speechSynthesis?.cancel?.();modal=null;render();alertToast(`Ahora estás en el perfil de ${account().name}. Datos privados separados.`)}
 if(e.target.id==='consultCrop'||e.target.id==='photoCrop'||e.target.id==='alertCrop')draft.crop=e.target.value;
 if(e.target.id==='photoInput'){loadPhoto(e.target.files[0])}
+if(e.target.id==='vibrationPref'){account().vibrationEnabled=e.target.checked;const ok=save();alertToast(ok?'Preferencia de vibración guardada.':'No se pudo guardar la preferencia.');return;}
 if(e.target.id==='preferredCrop'){account().preferredCrop=e.target.value;draft.crop=preferredCrop(account());save();alertToast('Cultivo inicial guardado para este perfil.');}
 if(e.target.id==='assistantMode'){account().mode=e.target.value;save();alertToast(e.target.value==='server'?'Modo LLM seleccionado. Necesitas backend en puerto 8000.':'Modo demostración activado.');}
-if(['voicePref','learnPref','quickPref'].includes(e.target.id)){const key={voicePref:'voice',learnPref:'learning',quickPref:'quickAccess'}[e.target.id];account()[key]=e.target.checked;if(key==='quickAccess')account().quickSuggestionDismissed=!e.target.checked;save();alertToast('Preferencia actualizada y guardada.')}});
-// Gestión de teclado solo para Ayuda; no cambia el diálogo de comunidad.
+if(['voicePref','learnPref','quickPref'].includes(e.target.id)){const key={voicePref:'voice',learnPref:'learning',quickPref:'quickAccess'}[e.target.id];account()[key]=e.target.checked;if(key==='quickAccess')account().quickSuggestionDismissed=!e.target.checked;save();if(key==='learning'){personalization.clearRuntime(current);failedQueryOwner=null;microphoneRetryOwner=null;draft.transcription=null;draft.transcriptionEdited=true;render();document.getElementById('learnPref')?.focus();}alertToast('Preferencia actualizada y guardada.')}});
+// Diálogos: Escape cierra y Tab/Shift+Tab mantienen foco dentro del modal.
 document.addEventListener('keydown',e=>{
- if(modal!=='help')return;
- if(e.key==='Escape'){e.preventDefault();modal=null;render();document.querySelector('[data-action=show-help]')?.focus();}
- else if(e.key==='Tab'){e.preventDefault();document.querySelector('[data-action=cancel-modal]')?.focus();}
+ if(!modal)return;
+ if(e.key==='Escape'){e.preventDefault();modal=null;render();return;}
+ if(e.key==='Tab'){
+  const dialog=document.querySelector('.modal[role=dialog]');
+  const controls=Array.from(dialog?.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]')||[]).filter(el=>!el.hidden);
+  if(!controls.length){e.preventDefault();document.querySelector('[data-action=cancel-modal]')?.focus();return;}
+  const first=controls[0],last=controls[controls.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+ }
 });
 // Atiende el envío de los formularios.
 document.addEventListener('submit',e=>{e.preventDefault();const form=e.target;
-if(form.id==='addCropForm'){const c=form.elements.crop.value;if(!c){alertToast('No hay nuevos cultivos disponibles.');return}if(!account().crops.includes(c)){account().crops.push(c);save();render();alertToast('Cultivo añadido a tu parcela.')}return}
+if(form.id==='addCropForm'){const c=form.elements.crop.value;if(!c){alertToast('No hay nuevos cultivos disponibles.');return}if(!account().crops.includes(c)){account().crops.push(c);const ok=save();if(!ok)account().crops.pop();render();if(ok){sensorySuccess();alertToast('Cultivo añadido y guardado en tu parcela.');}else alertToast('No se pudo guardar el cultivo. Inténtalo otra vez.')}return}
 if(form.id==='consultForm'){confirmQuery('consult',form);return}
 if(form.id==='photoForm'){confirmQuery('photo',form);return}
 if(form.id==='profileForm'){const name=form.elements.name.value.trim(),locality=form.elements.locality.value.trim();if(!name||!locality){alertToast('Completa los campos obligatorios.');return}Object.assign(account(),{name,locality,experience:form.elements.experience.value});save();render();alertToast('Perfil actualizado correctamente.');return}
 if(form.id==='alertForm'){const txt=form.elements.text.value.trim();if(txt.length<12){alertToast('Escribe al menos 12 caracteres para describir la alerta.');return}draft.crop=form.elements.crop.value;modalDraftText=txt;modal='alert';render();return}});
 // Atiende clics en botones y enlaces de acción.
 document.addEventListener('click',e=>{if(e.target.matches?.('.skip-link')){e.preventDefault();document.getElementById('main')?.focus();return;}const b=e.target.closest('[data-action],[data-route]');if(!b){if(e.target.matches('[data-dismiss="modal"]')){modal=null;render()}return}const next=b.dataset.route;if(next){navTo(next);return}const action=b.dataset.action;
+if(action==='learning-emotion'){const ok=learn('emotion',{value:b.dataset.value});redrawLearning('learning-emotion',b.dataset.value);alertToast(ok?'Selección guardada en este perfil.':'No se guardó la selección. Revisa el aprendizaje y el almacenamiento.');return;}
+if(action==='learning-forget'||action==='learning-reset'){if(!confirm(action==='learning-reset'?'¿Restablecer solo el aprendizaje? Tu historial, parcelas y preferencias se conservan.':'¿Olvidar esta categoría del aprendizaje de este perfil?'))return;const ok=personalization.forget(current,action==='learning-reset'?'all':b.dataset.category);failedQueryOwner=null;microphoneRetryOwner=null;redrawLearning(action==='learning-reset'?'learning-reset':'learning-forget');alertToast(ok?'Datos de aprendizaje eliminados.':'El cambio no pudo guardarse en este navegador.');return;}
+if(action==='learning-dismiss-help'){personalization.dismissHelp(current);redrawLearning('show-help');return;}
+if(action==='learning-consult'){if(crops.some(c=>c.id===b.dataset.crop)){draft.crop=b.dataset.crop;draft.voiceInput=false;navTo('consultar');}return;}
+if(action==='learning-accept-voice'){if(!account().learning)return;account().voice=true;const ok=save();redrawLearning('start-voice');alertToast(ok?'Lectura automática activada con tu autorización.':'No se pudo guardar la preferencia.');return;}
+if(action==='learning-decline-voice'){learn('dismissVoice');redrawLearning('start-voice');return;}
+if(action==='learning-feedback'){const record=draft.lastResult||account().history[0];if(record&&record.owner===current){const ok=learn('feedback',{id:record.id,value:b.dataset.value,real:record.real===true});redrawLearning('learning-feedback');alertToast(ok?'Valoración guardada.':'No se pudo guardar la valoración.');}return;}
+if(action==='voice-commands'){startCommands();return;}
+if(action==='voice-cancel'){cancelListening();voiceMessage='Escucha cancelada. Puedes usar los botones.';setInteraction('idle',voiceMessage);updateVoiceFeedback();return;}
+if(action==='voice-help'){voiceHelp=!voiceHelp;render();document.querySelector('[data-action=voice-help]')?.focus();return;}
 if(action==='rooms-mode'){roomsCommunity.chooseMode(current,b.dataset.mode);render();return}
 if(action==='toggle-offline'){offlineDemo=!offlineDemo;if(!offlineDemo)syncQueue();render();alertToast(offlineDemo?'Modo sin conexión simulado.':'Conexión restaurada.');return}
-if(action==='show-help'){modal='help';render();document.querySelector('[data-action=cancel-modal]')?.focus();return}
+if(action==='show-help'){personalization.dismissHelp(current);modal='help';render();document.querySelector('[data-action=cancel-modal]')?.focus();return}
 if(action==='cancel-modal'){const wasHelp=modal==='help';modal=null;render();if(wasHelp)document.querySelector('[data-action=show-help]')?.focus();return}
-if(action==='crop-select'){draft.crop=b.dataset.crop;draft.question='';draft.photo=null;navTo('consultar');alertToast(`${cropName(draft.crop)} seleccionado para consultar.`);return}
-if(action==='sample-query'){const q=document.getElementById('question');if(q){q.value='Las hojas de mi planta de papa están amarillas y algunas tienen manchas.';draft.question=q.value}return}
+if(action==='crop-select'){draft.voiceInput=false;draft.transcription=null;draft.crop=b.dataset.crop;draft.question='';draft.photo=null;navTo('consultar');alertToast(`${cropName(draft.crop)} seleccionado para consultar.`);return}
+if(action==='sample-query'){draft.voiceInput=false;draft.transcription=null;const q=document.getElementById('question');if(q){q.value='Las hojas de mi planta de papa están amarillas y algunas tienen manchas.';draft.question=q.value}return}
 if(action==='cancel-query'){cancelActiveQuery();setInteraction('idle','Espera cancelada. Tu texto sigue disponible; el modelo pudo haber recibido la consulta.');render();document.getElementById('question')?.focus();return;}
 if(action==='retry-query'){navTo(draft.photo?'planta':'consultar');document.getElementById(draft.photo?'photoDescription':'question')?.focus();return}
 if(action==='start-voice'){startVoice();return}
@@ -318,8 +412,8 @@ if(action==='stop-speech'){stopSpeech();setInteraction('ready','Lectura detenida
 if(action==='accept-personalization'){account().quickAccess=true;account().quickSuggestionDismissed=false;save();render();alertToast('Acceso frecuente agregado. Puedes revertirlo en Mi perfil.');return}
 if(action==='decline-personalization'){account().quickSuggestionDismissed=true;save();render();alertToast('No volveremos a mostrar esta sugerencia. Tus otras preferencias se conservan.');return}
 if(action==='reset-preferences'){Object.assign(account(),{quickAccess:false,quickSuggestionDismissed:true});save();render();alertToast('Acceso sugerido quitado. Tus preferencias de voz y personalización se conservan.');return}
-if(action==='confirm-alert'){const a=account();const text=modalDraftText;const alert={id:id(),owner:current,community:a.community,crop:draft.crop,text,date:new Date().toISOString(),status:'publicada',demo:true};if(connected()){db.alerts.push(alert)}else{a.draftAlerts.push(alert);a.queue.push({id:id(),recordId:alert.id,type:'alert',alert,date:alert.date})}save();modal=null;render();alertToast(connected()?'Alerta publicada solo para esta comunidad de demostración.':'Alerta guardada como borrador privado pendiente.');return}
+if(action==='confirm-alert'){const a=account();const text=modalDraftText;const alert={id:id(),owner:current,community:a.community,crop:draft.crop,text,date:new Date().toISOString(),status:'publicada',demo:true};if(connected()){db.alerts.push(alert)}else{a.draftAlerts.push(alert);a.queue.push({id:id(),recordId:alert.id,type:'alert',alert,date:alert.date})}const ok=save();modal=null;render();if(!ok){alertToast('No se pudo guardar la alerta local. Inténtalo otra vez.');return;}alertToast(connected()?'Alerta publicada solo para esta comunidad de demostración.':'Alerta guardada como borrador privado pendiente.');return}
 });
 // Activa el caché local en contextos seguros.
-if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).catch(()=>{});
 render();

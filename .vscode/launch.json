@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "AgroVoz: abrir en localhost",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}/AgroVoz-App",
+      "preLaunchTask": "AgroVoz: servidor local"
+    }
+  ]
+}

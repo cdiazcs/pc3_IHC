@@ -1,0 +1,13 @@
+{
+  "tests": 22,
+  "failures": 0,
+  "errors": 0,
+  "smoke_checks": 3,
+  "rooms_operations": 7,
+  "env_file_read": false,
+  "migrations_run": false,
+  "postgres_writes": false,
+  "status": "PASS",
+  "existing_server_health_http": null,
+  "health_note": "No hay respuesta de servidor habitual; /health se comprobó con TestClient."
+}

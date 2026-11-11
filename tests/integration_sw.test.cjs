@@ -15,5 +15,5 @@ test('El SW precachea ambos clientes y omite API/Authorization incluso en el mis
   handlers.fetch({request:{url:'http://localhost:8080'+path,method,headers:{has:name=>authenticated&&name==='Authorization'}},respondWith:()=>{intercepted=true;}});
   assert.equal(intercepted,false,path);
  }
- return install.then(()=>{assert.ok(installed.includes('./modules/llm-client.js'));assert.ok(installed.includes('./modules/rooms-client.js'));});
+ return install.then(()=>{assert.ok(installed.includes('./modules/llm-client.js'));assert.ok(installed.includes('./modules/rooms-client.js'));assert.ok(installed.includes('./modules/personalization.js'));assert.ok(installed.includes('./modules/voice-commands.js'));});
 });
