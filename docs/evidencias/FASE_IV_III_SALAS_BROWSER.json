@@ -1,0 +1,29 @@
+{
+  "checks": [
+    "Tres contextos sin localStorage compartido y sesiones demo independientes",
+    "A crea sala; B se une y ve su rol, sin código del creador ni endpoint inventado",
+    "B recibe por polling la alerta real de A; doble envío bloqueado y texto HTML escapado",
+    "Recarga conserva token propio y recupera alerta desde PostgreSQL",
+    "Tercera sesión no miembro rechazada al leer y publicar: 403/403",
+    "Respuesta 201 perdida tras commit: recarga y reintento con mismo UUID, solo dos alertas para dos operaciones",
+    "Cambio de perfil usa otra sesión sin salas y recupera la original sin reutilizar su token",
+    "Backend inaccesible: error visible y borrador/UUID conservados, sin publicación ficticia",
+    "Salir de Comunidad cancela polling; no hay nuevas lecturas después de cuatro segundos"
+  ],
+  "transport": "Chrome: contextos A/B/C independientes -> HTTP FastAPI -> PostgreSQL real agrovoz_pc3_test",
+  "routing": "CDP cambia únicamente el puerto 8000 por el de la API aislada; sin respuestas simuladas",
+  "status": "PASS",
+  "room_id": "c5a772b5-6bc2-4403-9f7b-6edfc27d5766",
+  "poll_delivery_ms": 4465,
+  "non_member_statuses": [
+    403,
+    403
+  ],
+  "response_dropped_after_http": 201,
+  "idempotency_key_survived_reload": true,
+  "participants_distinct": true,
+  "browser_contexts": 3,
+  "alerts_visible": 2,
+  "tokens_and_invitation_codes": "no se registran en el informe ni en la captura",
+  "executed_at": "2026-11-11T08:38:27.157Z"
+}

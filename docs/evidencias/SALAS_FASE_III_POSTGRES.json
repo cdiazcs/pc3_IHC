@@ -1,0 +1,12 @@
+{
+  "executed_at": "2026-11-11T03:15:21.384871-05:00",
+  "database": "agrovoz_pc3_test",
+  "isolated_cluster": true,
+  "row_counts": {
+    "participants": 4,
+    "rooms": 1,
+    "memberships": 2,
+    "alerts": 2
+  },
+  "status": "PASS"
+}

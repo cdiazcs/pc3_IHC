@@ -1,0 +1,807 @@
+{
+  "migration_sha256": "7a99cd82454d9d55eb09000257ad0ced5ef235cf5420b2b99e76adcbbef9fa63",
+  "signature": {
+    "columns": [
+      [
+        "alerts",
+        "id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "room_id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "author_id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "client_request_id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "sequence",
+        "bigint",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "crop",
+        "character varying(20)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "text",
+        "character varying(500)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "alerts",
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "CURRENT_TIMESTAMP",
+        ""
+      ],
+      [
+        "memberships",
+        "room_id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "memberships",
+        "participant_id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "memberships",
+        "role",
+        "character varying(10)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "memberships",
+        "joined_at",
+        "timestamp with time zone",
+        true,
+        "CURRENT_TIMESTAMP",
+        ""
+      ],
+      [
+        "participants",
+        "id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "participants",
+        "display_name",
+        "character varying(50)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "participants",
+        "token_hash",
+        "bytea",
+        true,
+        null,
+        ""
+      ],
+      [
+        "participants",
+        "token_expires_at",
+        "timestamp with time zone",
+        true,
+        null,
+        ""
+      ],
+      [
+        "participants",
+        "revoked_at",
+        "timestamp with time zone",
+        false,
+        null,
+        ""
+      ],
+      [
+        "participants",
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "CURRENT_TIMESTAMP",
+        ""
+      ],
+      [
+        "rooms",
+        "id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "rooms",
+        "created_by",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "rooms",
+        "creation_request_id",
+        "uuid",
+        true,
+        null,
+        ""
+      ],
+      [
+        "rooms",
+        "name",
+        "character varying(80)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "rooms",
+        "crop",
+        "character varying(20)",
+        false,
+        null,
+        ""
+      ],
+      [
+        "rooms",
+        "join_code_hash",
+        "bytea",
+        true,
+        null,
+        ""
+      ],
+      [
+        "rooms",
+        "last_alert_sequence",
+        "bigint",
+        true,
+        "0",
+        ""
+      ],
+      [
+        "rooms",
+        "created_at",
+        "timestamp with time zone",
+        true,
+        "CURRENT_TIMESTAMP",
+        ""
+      ],
+      [
+        "rooms",
+        "updated_at",
+        "timestamp with time zone",
+        true,
+        "CURRENT_TIMESTAMP",
+        ""
+      ],
+      [
+        "schema_migrations",
+        "version",
+        "character varying(40)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "schema_migrations",
+        "checksum",
+        "character(64)",
+        true,
+        null,
+        ""
+      ],
+      [
+        "schema_migrations",
+        "applied_at",
+        "timestamp with time zone",
+        true,
+        "CURRENT_TIMESTAMP",
+        ""
+      ]
+    ],
+    "constraints": [
+      [
+        "alerts",
+        "alerts_author_id_not_null",
+        "n",
+        "NOT NULL author_id",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_client_request_id_not_null",
+        "n",
+        "NOT NULL client_request_id",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_created_at_not_null",
+        "n",
+        "NOT NULL created_at",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_crop_not_null",
+        "n",
+        "NOT NULL crop",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_id_not_null",
+        "n",
+        "NOT NULL id",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_pkey",
+        "p",
+        "PRIMARY KEY (id)",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_room_id_fkey",
+        "f",
+        "FOREIGN KEY (room_id) REFERENCES salas.rooms(id) ON DELETE RESTRICT",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_room_id_not_null",
+        "n",
+        "NOT NULL room_id",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_sequence_not_null",
+        "n",
+        "NOT NULL sequence",
+        true
+      ],
+      [
+        "alerts",
+        "alerts_text_not_null",
+        "n",
+        "NOT NULL text",
+        true
+      ],
+      [
+        "alerts",
+        "ck_alert_crop",
+        "c",
+        "CHECK (((crop)::text = ANY ((ARRAY['papa'::character varying, 'maiz'::character varying, 'tomate'::character varying, 'cafe'::character varying, 'trigo'::character varying, 'otro'::character varying])::text[])))",
+        true
+      ],
+      [
+        "alerts",
+        "ck_alert_sequence",
+        "c",
+        "CHECK ((sequence > 0))",
+        true
+      ],
+      [
+        "alerts",
+        "ck_alert_text",
+        "c",
+        "CHECK (((char_length(btrim((text)::text)) >= 12) AND (char_length(btrim((text)::text)) <= 500)))",
+        true
+      ],
+      [
+        "alerts",
+        "fk_alert_membership",
+        "f",
+        "FOREIGN KEY (room_id, author_id) REFERENCES salas.memberships(room_id, participant_id) ON DELETE RESTRICT",
+        true
+      ],
+      [
+        "alerts",
+        "uq_alert_request",
+        "u",
+        "UNIQUE (room_id, author_id, client_request_id)",
+        true
+      ],
+      [
+        "alerts",
+        "uq_alert_sequence",
+        "u",
+        "UNIQUE (room_id, sequence)",
+        true
+      ],
+      [
+        "memberships",
+        "ck_membership_role",
+        "c",
+        "CHECK (((role)::text = ANY ((ARRAY['owner'::character varying, 'member'::character varying])::text[])))",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_joined_at_not_null",
+        "n",
+        "NOT NULL joined_at",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_participant_id_fkey",
+        "f",
+        "FOREIGN KEY (participant_id) REFERENCES salas.participants(id) ON DELETE RESTRICT",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_participant_id_not_null",
+        "n",
+        "NOT NULL participant_id",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_pkey",
+        "p",
+        "PRIMARY KEY (room_id, participant_id)",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_role_not_null",
+        "n",
+        "NOT NULL role",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_room_id_fkey",
+        "f",
+        "FOREIGN KEY (room_id) REFERENCES salas.rooms(id) ON DELETE RESTRICT",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_room_id_not_null",
+        "n",
+        "NOT NULL room_id",
+        true
+      ],
+      [
+        "participants",
+        "ck_participant_expiry",
+        "c",
+        "CHECK ((token_expires_at > created_at))",
+        true
+      ],
+      [
+        "participants",
+        "ck_participant_hash",
+        "c",
+        "CHECK ((octet_length(token_hash) = 32))",
+        true
+      ],
+      [
+        "participants",
+        "ck_participant_name",
+        "c",
+        "CHECK (((char_length(btrim((display_name)::text)) >= 1) AND (char_length(btrim((display_name)::text)) <= 50)))",
+        true
+      ],
+      [
+        "participants",
+        "participants_created_at_not_null",
+        "n",
+        "NOT NULL created_at",
+        true
+      ],
+      [
+        "participants",
+        "participants_display_name_not_null",
+        "n",
+        "NOT NULL display_name",
+        true
+      ],
+      [
+        "participants",
+        "participants_id_not_null",
+        "n",
+        "NOT NULL id",
+        true
+      ],
+      [
+        "participants",
+        "participants_pkey",
+        "p",
+        "PRIMARY KEY (id)",
+        true
+      ],
+      [
+        "participants",
+        "participants_token_expires_at_not_null",
+        "n",
+        "NOT NULL token_expires_at",
+        true
+      ],
+      [
+        "participants",
+        "participants_token_hash_not_null",
+        "n",
+        "NOT NULL token_hash",
+        true
+      ],
+      [
+        "participants",
+        "uq_participant_token",
+        "u",
+        "UNIQUE (token_hash)",
+        true
+      ],
+      [
+        "rooms",
+        "ck_room_crop",
+        "c",
+        "CHECK (((crop IS NULL) OR ((crop)::text = ANY ((ARRAY['papa'::character varying, 'maiz'::character varying, 'tomate'::character varying, 'cafe'::character varying, 'trigo'::character varying, 'otro'::character varying])::text[]))))",
+        true
+      ],
+      [
+        "rooms",
+        "ck_room_hash",
+        "c",
+        "CHECK ((octet_length(join_code_hash) = 32))",
+        true
+      ],
+      [
+        "rooms",
+        "ck_room_name",
+        "c",
+        "CHECK (((char_length(btrim((name)::text)) >= 1) AND (char_length(btrim((name)::text)) <= 80)))",
+        true
+      ],
+      [
+        "rooms",
+        "ck_room_sequence",
+        "c",
+        "CHECK ((last_alert_sequence >= 0))",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_created_at_not_null",
+        "n",
+        "NOT NULL created_at",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_created_by_fkey",
+        "f",
+        "FOREIGN KEY (created_by) REFERENCES salas.participants(id) ON DELETE RESTRICT",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_created_by_not_null",
+        "n",
+        "NOT NULL created_by",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_creation_request_id_not_null",
+        "n",
+        "NOT NULL creation_request_id",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_id_not_null",
+        "n",
+        "NOT NULL id",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_join_code_hash_not_null",
+        "n",
+        "NOT NULL join_code_hash",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_last_alert_sequence_not_null",
+        "n",
+        "NOT NULL last_alert_sequence",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_name_not_null",
+        "n",
+        "NOT NULL name",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_pkey",
+        "p",
+        "PRIMARY KEY (id)",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_updated_at_not_null",
+        "n",
+        "NOT NULL updated_at",
+        true
+      ],
+      [
+        "rooms",
+        "uq_room_creation",
+        "u",
+        "UNIQUE (created_by, creation_request_id)",
+        true
+      ],
+      [
+        "rooms",
+        "uq_room_invitation",
+        "u",
+        "UNIQUE (join_code_hash)",
+        true
+      ],
+      [
+        "schema_migrations",
+        "schema_migrations_applied_at_not_null",
+        "n",
+        "NOT NULL applied_at",
+        true
+      ],
+      [
+        "schema_migrations",
+        "schema_migrations_checksum_not_null",
+        "n",
+        "NOT NULL checksum",
+        true
+      ],
+      [
+        "schema_migrations",
+        "schema_migrations_pkey",
+        "p",
+        "PRIMARY KEY (version)",
+        true
+      ],
+      [
+        "schema_migrations",
+        "schema_migrations_version_not_null",
+        "n",
+        "NOT NULL version",
+        true
+      ]
+    ],
+    "indexes": [
+      [
+        "alerts",
+        "alerts_pkey",
+        "CREATE UNIQUE INDEX alerts_pkey ON salas.alerts USING btree (id)",
+        true
+      ],
+      [
+        "alerts",
+        "uq_alert_request",
+        "CREATE UNIQUE INDEX uq_alert_request ON salas.alerts USING btree (room_id, author_id, client_request_id)",
+        true
+      ],
+      [
+        "alerts",
+        "uq_alert_sequence",
+        "CREATE UNIQUE INDEX uq_alert_sequence ON salas.alerts USING btree (room_id, sequence)",
+        true
+      ],
+      [
+        "memberships",
+        "ix_memberships_participant",
+        "CREATE INDEX ix_memberships_participant ON salas.memberships USING btree (participant_id, joined_at, room_id)",
+        true
+      ],
+      [
+        "memberships",
+        "memberships_pkey",
+        "CREATE UNIQUE INDEX memberships_pkey ON salas.memberships USING btree (room_id, participant_id)",
+        true
+      ],
+      [
+        "memberships",
+        "uq_membership_owner",
+        "CREATE UNIQUE INDEX uq_membership_owner ON salas.memberships USING btree (room_id) WHERE ((role)::text = 'owner'::text)",
+        true
+      ],
+      [
+        "participants",
+        "participants_pkey",
+        "CREATE UNIQUE INDEX participants_pkey ON salas.participants USING btree (id)",
+        true
+      ],
+      [
+        "participants",
+        "uq_participant_token",
+        "CREATE UNIQUE INDEX uq_participant_token ON salas.participants USING btree (token_hash)",
+        true
+      ],
+      [
+        "rooms",
+        "rooms_pkey",
+        "CREATE UNIQUE INDEX rooms_pkey ON salas.rooms USING btree (id)",
+        true
+      ],
+      [
+        "rooms",
+        "uq_room_creation",
+        "CREATE UNIQUE INDEX uq_room_creation ON salas.rooms USING btree (created_by, creation_request_id)",
+        true
+      ],
+      [
+        "rooms",
+        "uq_room_invitation",
+        "CREATE UNIQUE INDEX uq_room_invitation ON salas.rooms USING btree (join_code_hash)",
+        true
+      ],
+      [
+        "schema_migrations",
+        "schema_migrations_pkey",
+        "CREATE UNIQUE INDEX schema_migrations_pkey ON salas.schema_migrations USING btree (version)",
+        true
+      ]
+    ],
+    "relations": [
+      [
+        "alerts",
+        "r",
+        false,
+        false
+      ],
+      [
+        "alerts_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "ix_memberships_participant",
+        "i",
+        false,
+        false
+      ],
+      [
+        "memberships",
+        "r",
+        false,
+        false
+      ],
+      [
+        "memberships_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "participants",
+        "r",
+        false,
+        false
+      ],
+      [
+        "participants_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "rooms",
+        "r",
+        false,
+        false
+      ],
+      [
+        "rooms_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "schema_migrations",
+        "r",
+        false,
+        false
+      ],
+      [
+        "schema_migrations_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_alert_request",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_alert_sequence",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_membership_owner",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_participant_token",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_room_creation",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_room_invitation",
+        "i",
+        false,
+        false
+      ]
+    ],
+    "triggers": [],
+    "functions": []
+  }
+}
