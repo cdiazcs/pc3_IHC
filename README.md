@@ -1,144 +1,110 @@
-# AgroVoz · PC2 (CC451)
+# 🌱 AgroVoz — PC3 (CC451)
 
 **Curso:** Interacción Humano-Computador  
+**Universidad:** Universidad Nacional de Ingeniería  
 **Ciclo:** 2026-II  
-**Integrantes:** [Enoc Rosales], [Maurizio Berdiales], [Cristian Diaz]
+**Integrantes:** Enoc Rosales, Maurizio Berdiales y Cristian Díaz
 
-## 1. Descripción del proyecto
+## 1. Descripción
 
-AgroVoz es un proyecto académico que busca facilitar el acceso a información agrícola para pequeños agricultores mediante una aplicación sencilla e interactiva.
+AgroVoz es una aplicación web progresiva (PWA) diseñada para pequeños agricultores. Permite gestionar cultivos, realizar consultas agrícolas mediante texto o voz, recibir orientación con inteligencia artificial y compartir alertas en comunidades.
 
-La idea es que los agricultores puedan registrar sus cultivos, realizar consultas mediante texto o voz, adjuntar fotografías de sus plantas y revisar sus consultas anteriores.
-
-Buscamos aplicar lo aprendido en el curso de Interacción Humano-Computador, especialmente los principios de usabilidad, accesibilidad, diseño centrado en el usuario e interfaces no convencionales.
+El proyecto aplica principios de usabilidad, accesibilidad, personalización y diseño emocional.
 
 ## 2. Objetivo
 
-Desarrollar un prototipo interactivo que permita a pequeños agricultores consultar información sobre sus cultivos de manera sencilla y accesible.
+Desarrollar una aplicación interactiva y accesible que facilite la consulta de información agrícola y la colaboración entre agricultores mediante inteligencia artificial e interfaces no convencionales.
 
 ## 3. Funcionalidades
 
 - Registro y visualización de parcelas y cultivos.
-- Consultas mediante texto y voz.
+- Consultas agrícolas mediante texto y voz.
+- Integración de inteligencia artificial local con Ollama.
+- Respuestas escritas y reproducción por voz.
 - Carga y visualización de fotografías.
-- Respuestas agrícolas demostrativas.
-- Historial de consultas.
-- Alertas comunitarias simuladas.
-- Personalización de preferencias.
-- Funciones locales y soporte PWA.
+- Historial de consultas y preferencias persistentes.
+- Salas comunitarias y alertas compartidas mediante PostgreSQL.
+- Aplicación PWA adaptable a computadoras y móviles.
 
-**Nota:** La orientación agrícola es demostrativa y no constituye un diagnóstico. Las cuentas y comunidades son ficticias. La integración completa con un modelo de IA y un backend de producción es parte del desarrollo futuro.
+**Nota:** La orientación agrícola es informativa y no reemplaza una evaluación profesional. Las sesiones comunitarias son demostrativas.
 
-## 4. Tecnologías utilizadas
+## 4. Tecnologías
 
-- **HTML:** estructura de las pantallas.
-- **CSS:** diseño visual y adaptación a distintos dispositivos.
-- **JavaScript:** navegación y funcionalidades interactivas.
-- **Python:** ejecución del servidor local.
-- **FastAPI:** estructura de backend opcional.
-- **PWA:** manifiesto y almacenamiento de recursos para uso local.
+- **Frontend:** HTML5, CSS3 y JavaScript.
+- **Backend:** Python y FastAPI.
+- **Inteligencia artificial:** Ollama con Llama 3.2 1B.
+- **Base de datos:** PostgreSQL y SQLAlchemy.
+- **Aplicación web:** PWA y Web Speech API.
+- **Control de versiones:** Git y GitHub.
 
-## 5. Estructura del proyecto
+## 5. Arquitectura
 
-El proyecto está organizado en las siguientes carpetas:
+AgroVoz utiliza una arquitectura cliente-servidor.
 
-- **AgroVoz-App:** contiene la aplicación web.
-- **backend:** contiene los archivos del servidor Python.
-- **docs:** contiene diagramas y documentación del proyecto.
-- **tests:** contiene scripts y resultados de pruebas.
-- **README.md:** contiene la descripción e instrucciones de ejecución.
+El frontend permite interactuar mediante texto, voz y pantallas accesibles. FastAPI procesa las solicitudes y se comunica con Ollama para generar orientación agrícola y con PostgreSQL para gestionar salas, participantes y alertas.
 
-## 6. Ejecución del proyecto
+## 6. Ejecución en Ubuntu
 
-Para ejecutar AgroVoz necesitamos tener Python 3 instalado.
-
-Abrimos el proyecto desde Visual Studio Code e ingresamos a la terminal.
-
-Ejecutamos los siguientes comandos:
-
-`cd AgroVoz-App`
-
-`py -3 -m http.server 8080`
-
-Luego abrimos el navegador e ingresamos a:
-
-**http://localhost:8080**
-
-Con esto podemos utilizar el prototipo de AgroVoz.
-
-## 7. Aplicación de conceptos de IHC
-
-Durante el desarrollo buscamos aplicar los principales conceptos estudiados en clase:
-
-- **Usabilidad:** navegación sencilla y acciones fáciles de comprender.
-- **Accesibilidad:** diferentes maneras de interactuar con la aplicación.
-- **Aspectos cognitivos:** botones reconocibles y reducción de información innecesaria.
-- **Interacción social:** funcionalidades para compartir alertas.
-- **Diseño emocional:** mensajes claros y retroalimentación durante las acciones.
-- **Diseño centrado en el usuario:** consideración de las necesidades de los pequeños agricultores.
-
-## 8. Estado del proyecto
-
-Actualmente AgroVoz cuenta con un prototipo navegable que permite demostrar sus principales interacciones.
-
-En las siguientes etapas buscamos integrar un modelo de lenguaje real, mejorar el procesamiento de fotografías y desarrollar la gestión segura de usuarios y la sincronización de datos.
-
-## 9. Equipo de desarrollo
-
-- **Enoc Rosales:** análisis de usuarios, PACT y planificación.
-- **Maurizio Berdiales:** requerimientos, historias de usuario y matriz de trazabilidad.
-- **Cristian Diaz:** prototipo, integración, diagramas y documentación técnica.
-
-Las responsabilidades se ajustarán a los aportes realizados por cada integrante.
-
-## Link de github:
-
-https://github.com/cdiazcs/AgroVozApp
-
-
-## PC3 · Fase I: FastAPI + Ollama local
-
-El backend dispone de un adaptador real compatible con Ollama; el frontend sigue
-iniciando en modo demostración. La auditoría, sus límites y resultados están en
-[docs/FASE_I_AUDITORIA.md](docs/FASE_I_AUDITORIA.md).
-
-En Ubuntu, desde la raíz:
+**Instalar dependencias:**
 
 ```bash
 python3 -m venv backend/.venv
 source backend/.venv/bin/activate
-python -m pip install -r backend/requirements.txt
-# Solo si backend/.env todavía no existe (conservar la configuración propia):
-[ -e backend/.env ] || cp backend/.env.example backend/.env
-ollama list
-# Si falta el modelo, descargarlo explícitamente: ollama pull llama3.2:1b
-# Ollama debe estar ejecutándose; si no está gestionado como servicio: ollama serve
-uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000
+pip install -r backend/requirements.txt
 ```
 
-`backend/.env` se carga automáticamente, sin reemplazar variables ya exportadas.
-Para Ollama local: `AGROVOZ_LLM_BASE_URL=http://127.0.0.1:11434/v1`,
-`AGROVOZ_MODEL=llama3.2:1b`, `AGROVOZ_LLM_API_KEY=` (vacía).
-El timeout por operación de red es configurable con
-`AGROVOZ_LLM_TIMEOUT_SECONDS` (120 por defecto, rango 1–300).
-No subir `.env` ni compartir claves.
-
-En otra terminal: `python3 -m http.server 8080 --directory AgroVoz-App`.
-Abrir `http://localhost:8080`, ir a Mi perfil → Motor de orientación → LLM conectado,
-y realizar una consulta escrita. La prueba de voz requiere navegador y permisos.
-`GET /health` comprueba configuración; `provider_configured=true` no demuestra
-conectividad ni generación. El contrato de consulta sigue siendo
-`POST /api/consult` con `{ "crop": "papa", "question": "Las hojas están amarillas" }`.
-Errores: 422 entrada inválida, 503 configuración ausente/inválida, 502 error del
-proveedor, timeout o respuesta malformada. No hay sustitución por mock en el backend.
-
-Pruebas desde la raíz, con el entorno activado:
+**Iniciar Ollama:**
 
 ```bash
-python tests/backend_smoke.py
-python tests/test_phase_i.py
-node --test tests/smoke.test.cjs
-node --check AgroVoz-App/app.js
-# Prueba real opcional: inicia un FastAPI temporal y requiere Ollama local.
-python tests/phase_i_live.py
+ollama pull llama3.2:1b
+sudo systemctl start ollama
 ```
+
+**Iniciar el backend:**
+
+```bash
+cd backend
+uvicorn main:app --reload --port 8000 --env-file .env
+```
+
+**Iniciar el frontend** desde otra terminal, en la raíz del proyecto:
+
+```bash
+python3 -m http.server 8080 --directory AgroVoz-App
+```
+
+Abrir: `http://127.0.0.1:8080`
+
+**Importante:** configurar previamente `backend/.env` con las conexiones locales de Ollama y PostgreSQL. No publicar contraseñas.
+
+## 7. Aplicación de conceptos de IHC
+
+- **Usabilidad:** navegación intuitiva y retroalimentación clara.
+- **Accesibilidad:** interacción por voz y texto.
+- **Personalización:** preferencias e historial persistentes.
+- **Diseño emocional:** aplicación de los niveles visceral, conductual y reflexivo de Norman.
+- **Interacción social:** comunicación y alertas entre agricultores.
+
+## 8. Aportes del equipo PC3
+
+| Integrante | Responsabilidades |
+|---|---|
+| **Cristian Díaz** | Integración de Ollama, consultas con IA, interfaz de voz, personalización y pruebas del módulo. |
+| **Maurizio Berdiales** | Implementación de PostgreSQL, salas multiusuario, alertas colaborativas, API REST y pruebas de persistencia. |
+| **Enoc Rosales** | Documentación del proyecto, historias de usuario, matriz de trazabilidad, usabilidad y evidencias de evaluación. |
+
+El trabajo se desarrolló mediante ramas independientes, integradas posteriormente mediante Git y Pull Requests.
+
+## 9. Estado del proyecto
+
+AgroVoz PC3 cuenta con módulos implementados de consultas mediante inteligencia artificial, interacción por voz, personalización y colaboración multiusuario.
+
+Se verificaron las conexiones del backend con Ollama y las operaciones de salas con PostgreSQL. La validación integral desde dispositivos externos continúa en revisión.
+
+## 10. Repositorio
+
+**GitHub:** https://github.com/cdiazcs/pc3_IHC
+
+---
+
+**AgroVoz PC3 — Universidad Nacional de Ingeniería · 2026-II**
