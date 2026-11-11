@@ -1,0 +1,16 @@
+digraph C4 {
+ graph [rankdir=LR,bgcolor=transparent,pad=.2,nodesep=.45,ranksep=.75];
+ node [fontname="DejaVu Sans",shape=box,style="rounded,filled",color="#2d7455",fillcolor="#eaf5ed",margin="0.18,0.16",fontsize=11];
+ edge [fontname="DejaVu Sans",fontsize=9,color="#487b5a"];
+ persona [label="Agricultor demo\n[Persona]"];
+ subgraph cluster_browser {label="[Contenedor] Navegador / PWA local";fontname="DejaVu Sans";fontsize=12;color="#8dbb9e";style="rounded,dashed";
+ ui [label="Interfaz AgroVoz\nHTML + CSS + JS"];
+ sw [label="Service worker\nCaché de recursos"];
+ data [label="localStorage\nPerfiles / Historial / Alertas / Cola"];
+ voice [label="Web Speech API\n(dependiente del navegador)"];
+ }
+ persona -> ui [label="usa"];
+ ui -> data [label="leer / escribir",dir=both];
+ ui -> sw [label="registrar / caché",dir=both];
+ ui -> voice [label="reconocer / sintetizar",dir=both];
+}

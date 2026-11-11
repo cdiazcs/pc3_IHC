@@ -1,0 +1,12 @@
+{
+  "id":"./",
+  "name":"AgroVoz - Asistente agrícola (prototipo PC2)",
+  "short_name":"AgroVoz",
+  "description":"Prototipo navegable y demostrativo para la práctica PC2 de IHC",
+  "start_url":"./index.html",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f5f7f1",
+  "theme_color":"#1f7650",
+  "icons":[{"src":"./icons/leaf.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

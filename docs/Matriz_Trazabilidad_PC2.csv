@@ -1,0 +1,50 @@
+﻿ID Req,Descripción del requerimiento,Tipo (FR/NFR),Prioridad,HU que lo cubre,Estado,Evidencia / Criterio de aceptación
+RF-01,Crear perfil y preferencias,RF,Alta,HU-01,Parcial,"Perfil permite cambiar nombre/localidad, sin registro real — CA-01a / 01b: perfil válido / campos incompletos \\"
+RF-02,Registrar parcelas y cultivos,RF,Alta,HU-02,Parcial,"Seleccionar/agregar cultivos, sin parcelas geográficas — CA-02a / 02b: guardado / error de entrada \\"
+RF-03,Actualizar perfil y datos,RF,Media,HU-18,Demostrado,Configuración persiste local — CA-18a / 18b: edición persistente / reintento \\
+RF-04,Capturar consulta por voz,RF,Alta,HU-03,Dependiente de navegador,Botón Hablar / permiso Web Speech API — CA-03a / 03b: audio / permiso denegado \\
+RF-05,Transcribir voz a texto,RF,Alta,HU-03,Dependiente de navegador,Transcripción editable si motor disponible — CA-03a / 03b: transcripción o aviso \\
+RF-06,Confirmar o corregir transcripción,RF,Alta,HU-04,Implementado,Consulta visible y confirmada antes del guardado — CA-04a / 04b: confirmar / corregir \\
+RF-07,Reproducir respuestas por voz,RF,Alta,HU-08,Dependiente de navegador,Escuchar/pausar/detener en Resultado — CA-08a / 08b: reproducción / control \\
+RF-08,Tomar fotografía,RF,Alta,HU-05,Implementado,"input capture=""environment"" y vista previa — CA-05a / 05b: foto y alternativa \\"
+RF-09,Cargar fotografía existente,RF,Media,HU-05,Implementado,Validación jpg/png/webp 6 MB — CA-05c: formato válido / inválido \\
+RF-10,Analizar fotografía de cultivo,RF,Alta,HU-06,Pendiente,Falta visión artificial — CA-06a / 06b: orientación / límite \\
+RF-11,Mostrar problemas posibles,RF,Alta,HU-06,Demostrado,Orientación ficticia con límites explícitos — CA-06a / 06b: resultados y límites \\
+RF-12,Interpretar consultas agrícolas,RF,Alta,"HU-07, HU-23",Demostrado,"Reglas de texto, no procesamiento LLM — CA-07b / 23a: aclaración o respuesta \\"
+RF-13,Recuperar manuales agrícolas,RF,Alta,"HU-07, HU-19",Pendiente,Falta RAG y manuales aprobados — CA-07a / 19a: fuentes activas \\
+RF-14,Generar recomendaciones claras,RF,Alta,HU-07,Demostrado,"Respuesta generada por ejemplos, no fuentes — CA-07a / 07b: respuesta contextual \\"
+RF-15,Mostrar fuentes y respaldo,RF,Alta,HU-07,Pendiente,Advierte ausencia de fuentes verificadas — CA-07a / 07b: cita o falta de respaldo \\
+RF-16,Guardar consultas e historial,RF,Media,HU-09,Implementado local,Historial local por cuenta — CA-09a: registro guardado \\
+RF-17,Visualizar historial propio,RF,Media,"HU-09, HU-21",Implementado local,Historial de perfil de demo (sin seguridad real) — CA-09a / 09b / 21b: privacidad \\
+RF-18,Crear borradores de alerta,RF,Alta,HU-10,Implementado local,Formulario borrador de alerta — CA-10a: borrador preparado \\
+RF-19,Publicar alertas confirmadas,RF,Alta,HU-10,Demostrado local,Confirmación y publicación local — CA-10a / 10b: confirmar / cancelar \\
+RF-20,Consultar alertas de comunidad,RF,Alta,HU-11,Demostrado local,Alertas filtradas por comunidad de demo — CA-11a / 11b: comunidad y permisos \\
+RF-21,Usar datos descargados offline,RF,Alta,HU-12,Parcial,Datos guardados y app cacheada tras 1era carga — CA-12a / 12b: lectura local \\
+RF-22,Guardar acciones pendientes,RF,Alta,"HU-12, HU-13",Demostrado local,Cola local con identificador — CA-12b / 13a: pendiente / sincronizar \\
+RF-23,Sincronizar sin duplicados,RF,Alta,HU-13,Demostrado local,"Reconciliación local idempotente, sin servidor — CA-13a / 13b: reintento / conflicto \\"
+RF-24,Ofrecer ayuda contextual,RF,Media,HU-14,Implementado,Ayuda modal dependiente de pantalla — CA-14a / 14b: ayuda reutilizable \\
+RF-25,Navegar con comandos de voz,RF,Alta,HU-17,Pendiente,No se reconocen comandos de navegación por voz — CA-17a / 17b: comando / confirmación \\
+RF-26,Mostrar confirmaciones visuales,RF,Alta,HU-16,Implementado,Mensajes textuales y estados — CA-16a / 16b: alternativa silenciosa \\
+RF-27,Accesibilidad con lector de pantalla,RF,Alta,HU-15,Parcial,Semántica y alternativa lista; falta auditoría lector — CA-15a / 15b: controles accesibles \\
+RF-28,Gestionar fuentes documentales,RF,Media,HU-19,Pendiente,Sin administración de manuales — CA-19a / 19b: versión y permisos \\
+RF-29,Moderar alertas reportadas,RF,Media,HU-20,Pendiente,Sin moderación de alertas — CA-20a / 20b: moderación / acceso \\
+RF-30,Explorar lienzo y lista de cultivos,RF,Alta,HU-22,Parcial,"Parcela con botones y lista, sin drag/zoom — CA-22a / 22b: lienzo / lista \\"
+RF-31,Consultar mediante texto,RF,Alta,HU-23,Implementado,Textarea de consulta — CA-23a / 23b: envío / recuperación \\
+RF-32,Personalizar según uso autorizado,RF,Media,HU-25,Implementado local,Acceso frecuente con aceptación reversible — CA-25a / 25b: aceptar / revertir \\
+RF-33,Simular expresiones en quechua,RF,Baja,HU-24,Pendiente,No implementado en prototipo — CA-24a / 24b: expresión y límite \\
+RF-34,Iniciar sesión y gestionar roles,RF,Alta,HU-21,Pendiente,Selector ficticio sin auth — CA-21a / 21b: inicio / aislamiento \\
+RF-35,Editar contexto agrícola local,RF,Media,HU-18,Parcial,"Localidad declarada, no contexto climático real — CA-18a / 18c: contexto y procedencia \\"
+RNF-01,Usabilidad y acceso a tareas,RNF,Alta,"HU-03, HU-05, HU-09, HU-22",Implementado,Rutas accesibles con 1 clic desde inicio — CA-22c: máximo tres transiciones \\
+RNF-02,Accesibilidad multimodal,RNF,Alta,"HU-15, HU-16, HU-17, HU-22",Parcial,"Controles amplios, foco, texto y alternativa; auditar — CA-15a / 15c / 22b: teclado y contraste \\"
+RNF-03,Comprensibilidad y lenguaje claro,RNF,Alta,"HU-07, HU-14",Implementado,Textos sencillos y ayuda contextual — CA-07a / 14a: mensajes entendibles \\
+RNF-04,Retroalimentación del proceso,RNF,Media,"HU-03, HU-06, HU-23",Parcial,"Mensajes de error, sin latencia LLM real — CA-23a / 23b: estado / reintento \\"
+RNF-05,Funcionamiento offline-first,RNF,Alta,"HU-12, HU-13",Parcial,"Cache PWA + cola simulada, sin IndexedDB/RPC — CA-12a / 13a: datos locales \\"
+RNF-06,Seguridad y permisos,RNF,Alta,"HU-19, HU-20, HU-21",Pendiente,No hay backend para controles de autenticación — CA-19b / 21b: roles / HTTPS \\
+RNF-07,Privacidad y control de publicación,RNF,Alta,"HU-10, HU-21, HU-25",Parcial,Confirmación de alerta; privacidad local no segura — CA-10b / 21b / 25b: datos privados \\
+RNF-08,Adaptación a tamaños de pantalla,RNF,Alta,"HU-15, HU-22",Parcial,"CSS responsive a varios anchos; validar 200% — CA-22b / 15a: 360, 768 y 1280 px \\"
+RNF-09,Consistencia visual,RNF,Media,"HU-14, HU-22",Implementado,Componentes y navegación consistente — CA-14b / 22a: etiquetas consistentes \\
+RNF-10,Tolerancia y recuperación de errores,RNF,Alta,"HU-03, HU-05, HU-06, HU-13, HU-23",Parcial,"Errores de archivo/voz, cola para recuperar — CA-03b / 05b / 13b / 23b \\"
+RNF-11,Mantenibilidad por módulos,RNF,Media,HU-19,Parcial,Separación funcional en JS y documentación — CA-19a y revisión de arquitectura \\
+RNF-12,Disponibilidad local sin backend,RNF,Alta,HU-12,Demostrado local,"Datos en localStorage, caché del shell — CA-12a / 12b: contenidos descargados \\"
+RNF-13,Sustitución del proveedor LLM,RNF,Media,HU-07,Pendiente,"Arquitectura futura de adaptador, no implementada — CA-07a: adaptador probado \\"
+RNF-14,Trazabilidad de orientación,RNF,Alta,"HU-06, HU-07, HU-19",Parcial,No atribuye referencias inexistentes; no RAG — CA-06b / 07a / 07b: fuentes y límites \\

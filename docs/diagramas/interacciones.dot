@@ -1,0 +1,16 @@
+digraph AgroVoz {
+ graph [rankdir=TB, splines=ortho, bgcolor=transparent, nodesep=.35, ranksep=.53, pad=.25];
+ node [shape=box,style="rounded,filled",fillcolor="#edf7ed",color="#257a52",fontname="DejaVu Sans",fontsize=10,margin="0.15,0.12"];
+ edge [color="#487b5a",fontname="DejaVu Sans",fontsize=8,arrowsize=.65];
+ "Inicio" -> {"Mis parcelas" "Consultar voz/texto" "Revisar planta" "Historial" "Alertas" "Perfil" "3 diseños"};
+ "Mis parcelas" -> "Cultivo seleccionado"; "Cultivo seleccionado" -> "Consultar voz/texto";
+ "Consultar voz/texto" -> "Revisar transcripción";"Revisar planta" -> "Vista previa foto";
+ "Vista previa foto" -> "Confirmar consulta"; "Revisar transcripción" -> "Confirmar consulta";
+ "Confirmar consulta" -> "Resultado demo" [label="en línea"];
+ "Confirmar consulta" -> "Cola local pendiente" [label="offline"];
+ "Cola local pendiente" -> "Resultado demo"; "Cola local pendiente" -> "Sincronizar local";
+ "Resultado demo" -> "Escuchar o leer"; "Resultado demo" -> "Historial"; "Resultado demo" -> "Alertas";
+ "Alertas" -> "Vista previa alerta"; "Vista previa alerta" -> "Publicación comunitaria" [label="confirmar"];
+ "Vista previa alerta" -> "Alertas" [label="cancelar"];
+ "Perfil" -> "Preferencias guardadas";
+}
