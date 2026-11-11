@@ -1,0 +1,86 @@
+{
+  "transport": "Chrome headless -> cliente ES module -> HTTP FastAPI -> Ollama real",
+  "checks": [
+    "Pregunta visible y controles bloqueados durante generación",
+    "Consulta real en navegador, CORS, contrato, identificación de proveedor y sin duplicado",
+    "Historial y preferencia de lectura persisten tras recarga",
+    "Fallo de red conserva pregunta, ofrece reintento y no guarda mock",
+    "Teclado: enlace de salto conserva pantalla y enfoca main",
+    "Teclado: cultivo → pregunta → Hablar; foco visible",
+    "Resultados demo diferenciados y navegación coherente en Consultar",
+    "Personalización con uso real: aceptar/quitar, recarga y consentimiento conservado",
+    "Perfiles locales: historial y cultivo inicial aislados",
+    "Etiquetas de consulta y región persistente de anuncios accesibles",
+    "Contraste acotado: texto, botón, borde, foco y error alcanzan umbrales de referencia"
+  ],
+  "voice": "Audio/micrófono físicos y voces del sistema pendientes de revisión manual",
+  "routing": "CDP redirige solo el puerto 8000 del cliente a un FastAPI propio en puerto libre; no hay mocks ni se usa el servidor del usuario",
+  "generated_observation": "Síntoma declarado: pequeños insectos y agujeros en algunas hojas.\n\nIncertidumbre sobre causas: no hay evidencia científica para determinar la causa exacta de estos síntomas.\n\nComprobación: Observa cuántas plantas tienen estos signos y desde cuándo comenzaron.",
+  "focus_outline": {
+    "color": "rgb(22, 74, 55)",
+    "width": "3px",
+    "style": "solid"
+  },
+  "labels": [
+    {
+      "id": "consultCrop",
+      "label": "¿Qué cultivo deseas consultar?"
+    },
+    {
+      "id": "question",
+      "label": "Describe qué observas"
+    }
+  ],
+  "contrast": [
+    {
+      "name": "Texto principal",
+      "fg": "rgb(38, 61, 50)",
+      "bg": "rgb(245, 247, 241)",
+      "minimum": 4.5,
+      "ratio": 10.83
+    },
+    {
+      "name": "Botón secundario",
+      "fg": "rgb(29, 100, 71)",
+      "bg": "rgb(231, 242, 232)",
+      "minimum": 4.5,
+      "ratio": 6.16
+    },
+    {
+      "name": "Borde del campo",
+      "fg": "rgb(112, 139, 117)",
+      "bg": "rgb(255, 255, 255)",
+      "minimum": 3,
+      "ratio": 3.72
+    },
+    {
+      "name": "Foco de campo",
+      "fg": "rgb(22, 74, 55)",
+      "bg": "rgb(255, 255, 255)",
+      "minimum": 3,
+      "ratio": 10.15
+    },
+    {
+      "name": "Estado de error",
+      "fg": "rgb(146, 59, 40)",
+      "bg": "rgb(255, 255, 255)",
+      "minimum": 4.5,
+      "ratio": 7.3
+    }
+  ],
+  "viewports": [
+    {
+      "width": 1280,
+      "scrollWidth": 1265,
+      "clientWidth": 1265
+    },
+    {
+      "width": 640,
+      "scrollWidth": 648,
+      "clientWidth": 625
+    }
+  ],
+  "status": "FAIL",
+  "error": "{\"width\":640,\"scrollWidth\":648,\"clientWidth\":625}",
+  "executed_at": "2026-11-11T05:55:50.787Z"
+}

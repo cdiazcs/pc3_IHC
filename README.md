@@ -95,3 +95,50 @@ Las responsabilidades se ajustarán a los aportes realizados por cada integrante
 
 https://github.com/cdiazcs/AgroVozApp
 
+
+## PC3 · Fase I: FastAPI + Ollama local
+
+El backend dispone de un adaptador real compatible con Ollama; el frontend sigue
+iniciando en modo demostración. La auditoría, sus límites y resultados están en
+[docs/FASE_I_AUDITORIA.md](docs/FASE_I_AUDITORIA.md).
+
+En Ubuntu, desde la raíz:
+
+```bash
+python3 -m venv backend/.venv
+source backend/.venv/bin/activate
+python -m pip install -r backend/requirements.txt
+# Solo si backend/.env todavía no existe (conservar la configuración propia):
+[ -e backend/.env ] || cp backend/.env.example backend/.env
+ollama list
+# Si falta el modelo, descargarlo explícitamente: ollama pull llama3.2:1b
+# Ollama debe estar ejecutándose; si no está gestionado como servicio: ollama serve
+uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000
+```
+
+`backend/.env` se carga automáticamente, sin reemplazar variables ya exportadas.
+Para Ollama local: `AGROVOZ_LLM_BASE_URL=http://127.0.0.1:11434/v1`,
+`AGROVOZ_MODEL=llama3.2:1b`, `AGROVOZ_LLM_API_KEY=` (vacía).
+El timeout por operación de red es configurable con
+`AGROVOZ_LLM_TIMEOUT_SECONDS` (120 por defecto, rango 1–300).
+No subir `.env` ni compartir claves.
+
+En otra terminal: `python3 -m http.server 8080 --directory AgroVoz-App`.
+Abrir `http://localhost:8080`, ir a Mi perfil → Motor de orientación → LLM conectado,
+y realizar una consulta escrita. La prueba de voz requiere navegador y permisos.
+`GET /health` comprueba configuración; `provider_configured=true` no demuestra
+conectividad ni generación. El contrato de consulta sigue siendo
+`POST /api/consult` con `{ "crop": "papa", "question": "Las hojas están amarillas" }`.
+Errores: 422 entrada inválida, 503 configuración ausente/inválida, 502 error del
+proveedor, timeout o respuesta malformada. No hay sustitución por mock en el backend.
+
+Pruebas desde la raíz, con el entorno activado:
+
+```bash
+python tests/backend_smoke.py
+python tests/test_phase_i.py
+node --test tests/smoke.test.cjs
+node --check AgroVoz-App/app.js
+# Prueba real opcional: inicia un FastAPI temporal y requiere Ollama local.
+python tests/phase_i_live.py
+```

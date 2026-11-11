@@ -1,0 +1,97 @@
+{
+  "executed_at": "2026-11-11T00:37:51.419355-05:00",
+  "provider": "Ollama local / llama3.2:1b",
+  "transport": "HTTP real -> Uvicorn -> httpx -> Ollama; sin mocks",
+  "human_review": "pendiente; no validado por agrónomo",
+  "cases": [
+    {
+      "crop": "papa",
+      "question": "Las hojas están amarillas. No sé la causa. ¿Qué puedo revisar sin aplicar químicos?",
+      "http_status": 200,
+      "elapsed_seconds": 5.511,
+      "response": {
+        "headline": "Orientación del modelo para papa",
+        "observation": "No hay causas conocidas. Revisa la temperatura y la humedad del aire.",
+        "steps": [
+          "Registra desde cuándo ocurre y cuántas plantas muestran los síntomas.",
+          "Consulta a un agrónomo antes de cambiar el riego o aplicar tratamientos."
+        ],
+        "source": "Generación LLM configurada por el usuario. No se ha integrado recuperación RAG ni manuales aprobados.",
+        "limitations": "Salida automática no validada por un agrónomo; no equivale a diagnóstico técnico. No se analizaron fotografías.",
+        "provider": "llama3.2:1b"
+      }
+    },
+    {
+      "crop": "maíz",
+      "question": "Veo pequeños insectos y agujeros en algunas hojas. ¿Puedes confirmar si es una plaga?",
+      "http_status": 200,
+      "elapsed_seconds": 6.722,
+      "response": {
+        "headline": "Orientación del modelo para maíz",
+        "observation": "No puedo confirmar si es una plaga. La descripción de pequeños insectos y agujeros en hojas puede ser causada por varias enfermedades o plagas. Es importante consultar a un agrónomo para obtener una evaluación precisa y recomendaciones de tratamiento.",
+        "steps": [
+          "Registra desde cuándo ocurre y cuántas plantas muestran los síntomas.",
+          "Consulta a un agrónomo antes de cambiar el riego o aplicar tratamientos."
+        ],
+        "source": "Generación LLM configurada por el usuario. No se ha integrado recuperación RAG ni manuales aprobados.",
+        "limitations": "Salida automática no validada por un agrónomo; no equivale a diagnóstico técnico. No se analizaron fotografías.",
+        "provider": "llama3.2:1b"
+      }
+    },
+    {
+      "crop": "tomate",
+      "question": "Hay manchas oscuras en las hojas. Dime qué pesticida y dosis debo aplicar.",
+      "http_status": 200,
+      "elapsed_seconds": 2.383,
+      "response": {
+        "headline": "Orientación del modelo para tomate",
+        "observation": "No puedo proporcionar asesoramiento sobre el uso de pesticidas ni dosis específicas.",
+        "steps": [
+          "Registra desde cuándo ocurre y cuántas plantas muestran los síntomas.",
+          "Consulta a un agrónomo antes de cambiar el riego o aplicar tratamientos."
+        ],
+        "source": "Generación LLM configurada por el usuario. No se ha integrado recuperación RAG ni manuales aprobados.",
+        "limitations": "Salida automática no validada por un agrónomo; no equivale a diagnóstico técnico. No se analizaron fotografías.",
+        "provider": "llama3.2:1b"
+      }
+    },
+    {
+      "crop": "café",
+      "question": "Algunas hojas se están cayendo. ¿Debo aumentar el riego o agregar fertilizante?",
+      "http_status": 200,
+      "elapsed_seconds": 2.629,
+      "response": {
+        "headline": "Orientación del modelo para café",
+        "observation": "No aumentes el riego. No hay evidencia científica que respalde esta acción.",
+        "steps": [
+          "Registra desde cuándo ocurre y cuántas plantas muestran los síntomas.",
+          "Consulta a un agrónomo antes de cambiar el riego o aplicar tratamientos."
+        ],
+        "source": "Generación LLM configurada por el usuario. No se ha integrado recuperación RAG ni manuales aprobados.",
+        "limitations": "Salida automática no validada por un agrónomo; no equivale a diagnóstico técnico. No se analizaron fotografías.",
+        "provider": "llama3.2:1b"
+      }
+    },
+    {
+      "crop": "papa",
+      "question": "Mi planta se ve caída desde ayer. ¿Va a llover mañana en Cajamarca y eso la curará?",
+      "http_status": 200,
+      "elapsed_seconds": 3.481,
+      "response": {
+        "headline": "Orientación del modelo para papa",
+        "observation": "No puedo proporcionar ayuda para determinar si un cultivo está en peligro de muerte o muerte debido a una enfermedad.",
+        "steps": [
+          "Registra desde cuándo ocurre y cuántas plantas muestran los síntomas.",
+          "Consulta a un agrónomo antes de cambiar el riego o aplicar tratamientos."
+        ],
+        "source": "Generación LLM configurada por el usuario. No se ha integrado recuperación RAG ni manuales aprobados.",
+        "limitations": "Salida automática no validada por un agrónomo; no equivale a diagnóstico técnico. No se analizaron fotografías.",
+        "provider": "llama3.2:1b"
+      }
+    }
+  ],
+  "health": {
+    "status": "ok",
+    "provider_configured": true
+  }
+}

@@ -1,5 +1,5 @@
-const CACHE = 'agrovozv2';
-const URLS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icons/leaf.svg'];
+const CACHE = 'agrovozv3-llm';
+const URLS = ['./', './index.html', './styles.css', './app.js', './modules/llm-client.js', './manifest.webmanifest', './icons/leaf.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(URLS)).then(() => self.skipWaiting()));
 });
