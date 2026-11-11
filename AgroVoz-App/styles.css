@@ -23,3 +23,20 @@
 .workspace,.sidebar{min-width:0}
 .top-actions{max-width:100%}
 .navlink{flex-shrink:0}
+
+/* Comunidad real: estilos locales, reutilizando cards/campos AgroVoz. */
+.rooms-mode{margin-bottom:20px}
+.rooms-panel{min-width:0;display:grid;gap:18px}
+.rooms-panel .rooms-fields{border:0;padding:0;margin:0;min-width:0}
+.rooms-panel legend{font-weight:750;margin-bottom:12px}
+.rooms-panel label{display:block;font-weight:700;margin:10px 0 6px}
+.rooms-panel button{margin-top:10px}
+.rooms-panel [hidden]{display:none!important}
+.rooms-panel .rooms-alert-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.rooms-panel [data-kind="error"]{color:#923b28;font-weight:700}
+.rooms-panel [data-kind="success"]{color:var(--deep);font-weight:700}
+.rooms-panel #rooms-storage-warning:empty{display:none}
+.rooms-panel #rooms-status:empty{display:none}
+.rooms-panel #rooms-invitation-code{font-family:monospace;letter-spacing:.1em}
+.rooms-panel .rooms-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.rooms-panel .btn:focus-visible,.rooms-panel .field:focus-visible{outline:3px solid #164a37;outline-offset:3px}

@@ -1,0 +1,24 @@
+{
+  "executed_at": "2026-11-11T03:30:00.669825-05:00",
+  "database": "agrovoz_pc3_test",
+  "postgres": "cluster privado temporal en /tmp, sin servidor compartido",
+  "migrations": [
+    {
+      "database": "agrovoz_pc3_test",
+      "version": "001",
+      "status": "applied",
+      "changed": true
+    },
+    {
+      "database": "agrovoz_pc3_test",
+      "version": "001",
+      "status": "already_applied",
+      "changed": false
+    }
+  ],
+  "tests_run": 25,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "status": "PASS"
+}

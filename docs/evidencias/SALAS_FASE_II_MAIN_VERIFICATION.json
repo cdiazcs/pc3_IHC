@@ -1,0 +1,153 @@
+{
+  "executed_at": "2026-11-11T02:42:16.405292-05:00",
+  "status": "PASS",
+  "inventory": {
+    "database": "agrovoz_pc3",
+    "current_user": "agrovoz_salas_migrator",
+    "signature_matches": true,
+    "version": "001",
+    "checksum": "7a99cd82454d9d55eb09000257ad0ced5ef235cf5420b2b99e76adcbbef9fa63",
+    "applied_at": "2026-11-11T07:36:28.128650+00:00",
+    "functional_row_counts": {
+      "participants": 0,
+      "rooms": 0,
+      "memberships": 0,
+      "alerts": 0
+    },
+    "relations": [
+      [
+        "alerts",
+        "r",
+        false,
+        false
+      ],
+      [
+        "alerts_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "ix_memberships_participant",
+        "i",
+        false,
+        false
+      ],
+      [
+        "memberships",
+        "r",
+        false,
+        false
+      ],
+      [
+        "memberships_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "participants",
+        "r",
+        false,
+        false
+      ],
+      [
+        "participants_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "rooms",
+        "r",
+        false,
+        false
+      ],
+      [
+        "rooms_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "schema_migrations",
+        "r",
+        false,
+        false
+      ],
+      [
+        "schema_migrations_pkey",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_alert_request",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_alert_sequence",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_membership_owner",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_participant_token",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_room_creation",
+        "i",
+        false,
+        false
+      ],
+      [
+        "uq_room_invitation",
+        "i",
+        false,
+        false
+      ]
+    ],
+    "constraint_count": 54,
+    "index_count": 12,
+    "columns_count": 30
+  },
+  "api": {
+    "health_http": 200,
+    "anonymous_http": 401,
+    "database_lookup_unknown_session_http": 401,
+    "database_error_503": false,
+    "sql_connections_forced_read_only": true,
+    "requests": [
+      "GET /health",
+      "GET /api/rooms (sin token)",
+      "GET /api/rooms (token desconocido)"
+    ],
+    "post_requests": 0,
+    "temporary_api_process": true
+  },
+  "row_counts_before": {
+    "participants": 0,
+    "rooms": 0,
+    "memberships": 0,
+    "alerts": 0
+  },
+  "row_counts_after": {
+    "participants": 0,
+    "rooms": 0,
+    "memberships": 0,
+    "alerts": 0
+  },
+  "inserted_test_rows": 0,
+  "backup": "no requerido: evidencia PRE confirma salas inexistente antes de migrar"
+}

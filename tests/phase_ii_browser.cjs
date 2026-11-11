@@ -118,8 +118,8 @@ function check(name){report.checks.push(name);console.log('PASS',name);}
   await send('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
   await send('Page.reload');await until('!!document.getElementById("consultForm")',15000);
   assert.ok(await evaluate('document.body.textContent.includes("Sin conexión")'));
-  const cached=await evaluate(`caches.open('agrovozv3-llm').then(cache=>cache.match('./modules/llm-client.js').then(response=>!!response))`);
-  assert.equal(cached,true);check('Recarga offline de PWA con módulo LLM en caché');
+  const cached=await evaluate(`Promise.all(['./modules/llm-client.js','./modules/rooms-client.js'].map(url=>caches.match(url).then(response=>!!response))).then(results=>results.every(Boolean))`);
+  assert.equal(cached,true);check('Recarga offline de PWA con módulos LLM y salas en caché');
   assert.equal(errors.length,0,JSON.stringify(errors));
   report.status='PASS';
  }catch(error){report.status='FAIL';report.error=error.message;console.error(error);process.exitCode=1;}

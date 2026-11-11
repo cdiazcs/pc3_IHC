@@ -1,0 +1,24 @@
+{
+  "executed_at": "2026-11-11T03:37:36.541199-05:00",
+  "database": "agrovoz_pc3_test",
+  "isolated_cluster": true,
+  "llm": "Ollama local / llama3.2:1b",
+  "status": "PASS",
+  "consult_http": 200,
+  "consult_seconds": 11.679,
+  "rooms_operations": 7,
+  "health_http": 200,
+  "alert_read_http": 200,
+  "same_server": true,
+  "advice": {
+    "headline": "Orientación del modelo para papa",
+    "observation": "No hay datos sobre la presencia de enfermedades en las hojas amarillas de la papa. Es posible que estés observando un síntoma común en la papa, como la mancha amarilla. Sin embargo, es importante consultar a un agrónomo para obtener información precisa y recomendaciones específicas.",
+    "steps": [
+      "Registra desde cuándo ocurre y cuántas plantas muestran los síntomas.",
+      "Consulta a un agrónomo antes de cambiar el riego o aplicar tratamientos."
+    ],
+    "source": "Generación LLM configurada por el usuario. No se ha integrado recuperación RAG ni manuales aprobados.",
+    "limitations": "Salida automática no validada por un agrónomo; no equivale a diagnóstico técnico. No se analizaron fotografías.",
+    "provider": "llama3.2:1b"
+  }
+}

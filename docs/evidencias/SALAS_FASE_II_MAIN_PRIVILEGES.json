@@ -1,0 +1,134 @@
+{
+  "executed_at": "2026-11-11T02:38:00.263043-05:00",
+  "database": "agrovoz_pc3",
+  "authorization": "usuario autorizó específicamente permisos mínimos",
+  "before": {
+    "schema": {
+      "USAGE": false,
+      "CREATE": false
+    },
+    "tables": {
+      "participants": {
+        "SELECT": false,
+        "INSERT": false,
+        "UPDATE": false,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "rooms": {
+        "SELECT": false,
+        "INSERT": false,
+        "UPDATE": false,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "memberships": {
+        "SELECT": false,
+        "INSERT": false,
+        "UPDATE": false,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "alerts": {
+        "SELECT": false,
+        "INSERT": false,
+        "UPDATE": false,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "schema_migrations": {
+        "SELECT": false,
+        "INSERT": false,
+        "UPDATE": false,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      }
+    },
+    "column_privileges_schema_migrations": {
+      "SELECT": false,
+      "INSERT": false,
+      "UPDATE": false,
+      "REFERENCES": false
+    }
+  },
+  "after": {
+    "schema": {
+      "USAGE": true,
+      "CREATE": false
+    },
+    "tables": {
+      "participants": {
+        "SELECT": true,
+        "INSERT": true,
+        "UPDATE": true,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "rooms": {
+        "SELECT": true,
+        "INSERT": true,
+        "UPDATE": true,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "memberships": {
+        "SELECT": true,
+        "INSERT": true,
+        "UPDATE": true,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "alerts": {
+        "SELECT": true,
+        "INSERT": true,
+        "UPDATE": true,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      },
+      "schema_migrations": {
+        "SELECT": false,
+        "INSERT": false,
+        "UPDATE": false,
+        "DELETE": false,
+        "TRUNCATE": false,
+        "REFERENCES": false,
+        "TRIGGER": false,
+        "MAINTAIN": false
+      }
+    },
+    "column_privileges_schema_migrations": {
+      "SELECT": false,
+      "INSERT": false,
+      "UPDATE": false,
+      "REFERENCES": false
+    }
+  },
+  "status": "PASS"
+}

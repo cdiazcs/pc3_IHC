@@ -6,12 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, ConfigDict
 from dotenv import load_dotenv
 from services.llm import LLMError, generate_advice
+from routers.salas import router as rooms_router
 
 load_dotenv(Path(__file__).with_name('.env'), override=False)
 # Usa .env local sin reemplazar variables ya definidas.
 app = FastAPI(title="AgroVoz LLM adapter", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
-                   allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+                   allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
+app.include_router(rooms_router)
 
 # Valida y normaliza los datos de la consulta.
 class Query(BaseModel):

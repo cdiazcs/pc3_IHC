@@ -7,3 +7,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 node_modules/
+
+# Configuración personal del editor
+.vscode/

@@ -6,7 +6,8 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {pathToFileURL}=require('node:url');
 const source=fs.readFileSync(path.join(__dirname,'../AgroVoz-App/app.js'),'utf8')
- .replace("import {consultLLM} from './modules/llm-client.js';",'');
+ .replace("import {consultLLM} from './modules/llm-client.js';",'')
+ .replace("import {createRoomsCommunity} from './modules/rooms-client.js';",'');
 const modulePromise=import(pathToFileURL(path.join(__dirname,'../AgroVoz-App/modules/llm-client.js')));
 const advice={headline:'Orientación',observation:'No puedo confirmar una causa. Observa las hojas.',steps:['Registra desde cuándo ocurre.'],source:'LLM sin RAG',limitations:'No es diagnóstico.',provider:'llama3.2:1b'};
 const question='Las hojas están amarillas desde ayer';
@@ -21,7 +22,7 @@ async function harness(fetchImpl,options={}){
  let confirmed=true,confirmations=0;
  const location={hash:'#consultar',protocol:'http:',hostname:'localhost'};
  const window={addEventListener:(name,fn)=>handlers['window-'+name]=fn,scrollTo(){}};
- const context={document,window,location,navigator:{onLine:true},console,AbortController,crypto:require('node:crypto').webcrypto,
+ const context={createRoomsCommunity:()=>({isReal:()=>false,selector:()=>'',sync(){},chooseMode(){throw new Error('Flujo LLM aislado de salas');}}),document,window,location,navigator:{onLine:true},console,AbortController,crypto:require('node:crypto').webcrypto,
   localStorage:{getItem:key=>store.get(key)||null,setItem:(key,value)=>store.set(key,String(value))},
   setTimeout:()=>1,clearTimeout(){},confirm:()=>{confirmations++;return confirmed;},
   consultLLM:(payload,options)=>consultLLM(payload,{...options,fetchImpl})};
