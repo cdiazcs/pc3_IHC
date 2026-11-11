@@ -5,11 +5,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import httpx
+from routers.salas import router as rooms_router
 
 # API ligera para consultar al modelo.
 app = FastAPI(title="AgroVoz LLM adapter", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
-                   allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+                   allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
+app.include_router(rooms_router)
 
 # Entrada básica del usuario.
 class Query(BaseModel):

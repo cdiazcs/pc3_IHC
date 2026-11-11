@@ -1,6 +1,6 @@
 /* Pruebas de lógica UI ejecutadas sin navegador. No reemplazan pruebas E2E ni tests con usuarios. */
 const fs=require('fs'), vm=require('vm'), path=require('path'), assert=require('assert');
-const appSource=fs.readFileSync(path.join(__dirname,'../AgroVoz-App/app.js'),'utf8');
+const appSource=fs.readFileSync(path.join(__dirname,'../AgroVoz-App/app.js'),'utf8').replace("import {createRoomsCommunity} from './modules/rooms-client.js';",'');
 const store=new Map();const handlers={};const app={innerHTML:''};
 const fakeDocument={
  getElementById(id){return id==='app'?app:null},
@@ -16,6 +16,7 @@ const ctx={
  document:fakeDocument,window:{addEventListener:(k,v)=>handlers[`window-${k}`]=v,scrollTo(){},speechSynthesis:null},
  location,navigator:{onLine:true},console,confirm:()=>true,setTimeout:()=>1,clearTimeout:()=>{},
  crypto:require('crypto').webcrypto,
+ createRoomsCommunity:()=>({isReal:()=>false,selector:()=>'',sync(){},chooseMode(){throw new Error('Las pruebas PC2 no deben activar la red comunitaria');}}),
 };
 vm.createContext(ctx);vm.runInContext(appSource,ctx,{filename:'app.js'});
 function q(script){return vm.runInContext(script,ctx)}

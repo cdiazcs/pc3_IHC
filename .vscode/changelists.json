@@ -1,0 +1,35 @@
+{
+  "changelists": [
+    {
+      "name": "Default",
+      "files": [
+        "backend/.env.example",
+        "backend/main.py",
+        "backend/requirements.txt",
+        ".gitignore",
+        "backend/db/__init__.py",
+        "backend/db/base.py",
+        "backend/db/models_rooms.py",
+        "backend/db/session.py",
+        "backend/migrations/rooms/001_initial.sql",
+        "backend/migrations/rooms/001_schema_manifest.json",
+        "backend/rooms_config.py",
+        "backend/routers/salas.py",
+        "backend/schemas/__init__.py",
+        "backend/schemas/rooms.py",
+        "backend/scripts/init_rooms_db.py",
+        "backend/services/rooms.py",
+        "docs/FASE_I_SALAS_AUDITORIA.md",
+        "docs/POSTGRES_DISENO.md",
+        "docs/evidencias/SALAS_FASE_II_TESTS.json",
+        "tests/rooms_test_postgres.py",
+        "tests/run_salas_checks.py",
+        "tests/test_salas.py",
+        ".vscode/changelists.json",
+        "tests/salas_http_flow.py",
+        "docs/evidencias/SALAS_FASE_II_HTTP.json"
+      ]
+    }
+  ],
+  "active": "Default"
+}
