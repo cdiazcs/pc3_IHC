@@ -1,0 +1,100 @@
+{
+  "transport": "Chrome headless -> cliente ES module -> HTTP FastAPI -> Ollama real",
+  "checks": [
+    "Pregunta visible y controles bloqueados durante generación",
+    "Consulta real en navegador, CORS, contrato, identificación de proveedor y sin duplicado",
+    "Historial y preferencia de lectura persisten tras recarga",
+    "Fallo de red conserva pregunta, ofrece reintento y no guarda mock",
+    "Reintento tras reconectar: respuesta real nueva y un único registro adicional",
+    "Teclado: enlace de salto conserva pantalla y enfoca main",
+    "Teclado: cultivo → pregunta → Hablar; foco visible",
+    "Ayuda por teclado: foco contenido, Escape y retorno al control de origen",
+    "Resultados demo diferenciados y navegación coherente en Consultar",
+    "Personalización con uso real: aceptar/quitar, recarga y consentimiento conservado",
+    "Perfiles locales: historial y cultivo inicial aislados",
+    "Etiquetas de consulta y región persistente de anuncios accesibles",
+    "Contraste acotado: texto, botón, borde, foco y error alcanzan umbrales de referencia",
+    "Vista de consulta sin desborde horizontal de página a 1280/640/360 px",
+    "Chrome real: micrófono denegado produce mensaje y conserva entrada escrita",
+    "Recarga offline de PWA con módulos LLM y salas en caché"
+  ],
+  "voice": "Audio/micrófono físicos y voces del sistema pendientes de revisión manual",
+  "routing": "CDP redirige solo el puerto 8000 del cliente a un FastAPI propio en puerto libre; no hay mocks ni se usa el servidor del usuario",
+  "generated_observation": "No puedo confirmar si es una plaga. La descripción de pequeños insectos y agujeros en algunas hojas puede ser causada por varias enfermedades o plagas. Es importante que consultes a un agrónomo para obtener una evaluación precisa y recomendaciones de tratamiento.",
+  "retry_observation": "No puedo confirmar si es una plaga. La descripción de pequeños insectos y agujeros en algunas hojas sugiere una posible infestación de pulgones. Sin embargo, no tengo suficiente información para determinar con certeza si es una plaga o no. Es importante consultar a un agrónomo para obtener una evaluación más precisa y recomendaciones adecuadas para el cultivo.",
+  "focus_outline": {
+    "color": "rgb(22, 74, 55)",
+    "width": "3px",
+    "style": "solid"
+  },
+  "labels": [
+    {
+      "id": "consultCrop",
+      "label": "¿Qué cultivo deseas consultar?"
+    },
+    {
+      "id": "question",
+      "label": "Describe qué observas"
+    }
+  ],
+  "contrast": [
+    {
+      "name": "Texto principal",
+      "fg": "rgb(38, 61, 50)",
+      "bg": "rgb(245, 247, 241)",
+      "minimum": 4.5,
+      "ratio": 10.83
+    },
+    {
+      "name": "Botón secundario",
+      "fg": "rgb(29, 100, 71)",
+      "bg": "rgb(231, 242, 232)",
+      "minimum": 4.5,
+      "ratio": 6.16
+    },
+    {
+      "name": "Borde del campo",
+      "fg": "rgb(112, 139, 117)",
+      "bg": "rgb(255, 255, 255)",
+      "minimum": 3,
+      "ratio": 3.72
+    },
+    {
+      "name": "Foco de campo",
+      "fg": "rgb(22, 74, 55)",
+      "bg": "rgb(255, 255, 255)",
+      "minimum": 3,
+      "ratio": 10.15
+    },
+    {
+      "name": "Estado de error",
+      "fg": "rgb(146, 59, 40)",
+      "bg": "rgb(255, 255, 255)",
+      "minimum": 4.5,
+      "ratio": 7.3
+    }
+  ],
+  "viewports": [
+    {
+      "width": 1280,
+      "scrollWidth": 1265,
+      "clientWidth": 1265
+    },
+    {
+      "width": 640,
+      "scrollWidth": 625,
+      "clientWidth": 625
+    },
+    {
+      "width": 360,
+      "scrollWidth": 345,
+      "clientWidth": 345
+    }
+  ],
+  "mobile_nav_no_overlap": true,
+  "voice_recognition_supported": true,
+  "microphone_denied_message": "Permiso de micrófono denegado. Puedes habilitarlo en el navegador o escribir tu pregunta.",
+  "voice_physical": "Pendiente: dictado real y escucha audible; permiso denegado no acredita micrófono funcionando",
+  "status": "PASS",
+  "executed_at": "2026-11-11T08:40:06.005Z"
+}

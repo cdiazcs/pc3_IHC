@@ -1,0 +1,44 @@
+{
+  "executed_at": "2026-11-11T02:36:27.580398-05:00",
+  "read_only": true,
+  "checks": [
+    {
+      "setting": "DATABASE_URL",
+      "database": "agrovoz_pc3",
+      "role": "agrovoz_salas_app",
+      "server_version": "18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "database_privileges": {
+        "CONNECT": true,
+        "CREATE": false,
+        "TEMP": true
+      },
+      "schema_exists": false,
+      "schema_relations": [],
+      "default_acl": []
+    },
+    {
+      "setting": "MIGRATION_DATABASE_URL",
+      "database": "agrovoz_pc3",
+      "role": "agrovoz_salas_migrator",
+      "server_version": "18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "database_privileges": {
+        "CONNECT": true,
+        "CREATE": true,
+        "TEMP": true
+      },
+      "schema_exists": false,
+      "schema_relations": [],
+      "default_acl": []
+    }
+  ],
+  "backup": {
+    "required": false,
+    "status": "no requerido: salas inexistente"
+  }
+}

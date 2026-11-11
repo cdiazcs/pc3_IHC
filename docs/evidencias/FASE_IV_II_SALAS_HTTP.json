@@ -1,0 +1,112 @@
+{
+  "executed_at": "2026-11-11T03:30:03.610700-05:00",
+  "status": "PASS",
+  "database": "agrovoz_pc3_test",
+  "transport": "clientes httpx independientes -> Uvicorn real -> PostgreSQL real",
+  "api_process_restarted": true,
+  "client_connections_recreated": true,
+  "participant_a": "cdb94694-3a86-4a35-9c29-ef97e81a2707",
+  "participant_b": "d737de63-b6f0-45e6-aba7-daaa962b23bc",
+  "room_id": "a5529bfe-7808-455d-9da8-3ff97c371e23",
+  "alert_id": "a3151507-c9a2-4d39-a30c-9672aad54cec",
+  "persisted_alert_count": 1,
+  "tokens_and_invitation_codes": "omitidos",
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/rooms/participants",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/participants",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/participants",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/join",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/rooms",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/invitations",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "method": "POST",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/invitations",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/rooms/a5529bfe-7808-455d-9da8-3ff97c371e23/alerts",
+      "expected": 200,
+      "actual": 200
+    }
+  ]
+}
